@@ -10,8 +10,8 @@ import {
 } from '../components/icons';
 
 type GameScreenProps = {
-  onBack: () => void;
   onExit: () => void;
+  onShowFaq: () => void;
   energy?: number;
   score?: number;
 };
@@ -23,7 +23,7 @@ const StatusItem = ({ icon, value, label }: { icon: ReactNode; value: number; la
   </div>
 );
 
-export const GameScreen = ({ onExit, energy = 5, score = 0 }: GameScreenProps) => (
+export const GameScreen = ({ onExit, onShowFaq, energy = 5, score = 0 }: GameScreenProps) => (
   <main className="flex min-h-screen items-center justify-center bg-[var(--color-surface)] px-6 py-8">
     <div className="flex w-full max-w-[25rem] flex-col gap-7 text-[var(--color-on-surface)]">
       <header className="flex items-center justify-between gap-4">
@@ -41,7 +41,7 @@ export const GameScreen = ({ onExit, energy = 5, score = 0 }: GameScreenProps) =
         </div>
 
         <div className="flex items-center gap-2">
-          <IconButton variant="ghost" aria-label="Справка">
+          <IconButton variant="ghost" aria-label="Справка" onClick={onShowFaq}>
             <QuestionIcon className="h-5 w-5" />
           </IconButton>
           <IconButton variant="ghost" aria-label="Домой" onClick={onExit}>

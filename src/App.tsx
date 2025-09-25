@@ -1,15 +1,22 @@
 import { useState } from 'react';
+import FaqScreen from './screens/FaqScreen';
 import GameScreen from './screens/GameScreen';
 import StartScreen from './screens/StartScreen';
 
-function App() {
-  const [isPlaying, setIsPlaying] = useState(false);
+type Screen = 'start' | 'game' | 'faq';
 
-  return isPlaying ? (
-    <GameScreen onBack={() => setIsPlaying(false)} onExit={() => setIsPlaying(false)} />
-  ) : (
-    <StartScreen onPlay={() => setIsPlaying(true)} />
-  );
+function App() {
+  const [screen, setScreen] = useState<Screen>('start');
+
+  if (screen === 'game') {
+    return <GameScreen onExit={() => setScreen('start')} onShowFaq={() => setScreen('faq')} />;
+  }
+
+  if (screen === 'faq') {
+    return <FaqScreen onBack={() => setScreen('game')} />;
+  }
+
+  return <StartScreen onPlay={() => setScreen('game')} />;
 }
 
 export default App;

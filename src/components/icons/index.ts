@@ -1,5 +1,7 @@
 export { default as ArrowIcon } from './ArrowIcon';
+export { default as ArrowLeftIcon } from './ArrowLeftIcon';
 export { default as AvatarIcon } from './AvatarIcon';
+export { default as ChevronRightIcon } from './ChevronRightIcon';
 export { default as HomeIcon } from './HomeIcon';
 export { default as LightningIcon } from './LightningIcon';
 export { default as QuestionIcon } from './QuestionIcon';
