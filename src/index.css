@@ -1,5 +1,45 @@
 @import 'tailwindcss';
 
+@font-face {
+  font-family: 'Gazprombank Sans';
+  src: url('./assets/fonts/gazprombank-sans/GazprombankSans-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Gazprombank Sans';
+  src: url('./assets/fonts/gazprombank-sans/GazprombankSans-DemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Gazprombank Sans';
+  src: url('./assets/fonts/gazprombank-sans/GazprombankSans-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Halvar Breit';
+  src: url('./assets/fonts/halvar/HalvarBreit-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Halvar Breit';
+  src: url('./assets/fonts/halvar/HalvarBreit-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
   /* Typography */
   --font-heading: 'Halvar Breit', 'Montserrat', 'Arial Black', sans-serif;
@@ -162,8 +202,7 @@
     font-size: var(--text-body-3);
     line-height: var(--leading-body-3);
     font-weight: 600;
-    background-color: var(--color-black);
-    color: white;
+    color: black;
     cursor: pointer;
     transition:
       border-color 150ms ease,
@@ -171,10 +210,10 @@
       color 150ms ease;
   }
 
-  button:hover {
+  /* button:hover {
     border-color: var(--color-violet);
     background-color: var(--color-violet);
-  }
+  } */
 
   button:disabled {
     opacity: 0.45;

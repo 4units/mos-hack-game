@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeftIcon, ChevronRightIcon } from '../components/icons';
+import { BackArrowIcon, ChevronRightIcon } from '../components/icons';
 
 type FaqItem = {
   question: string;
@@ -43,17 +43,13 @@ export const FaqScreen = ({ onBack }: FaqScreenProps) => {
             type="button"
             onClick={onBack}
             aria-label="Назад"
-            className="flex items-center gap-4 text-[var(--color-black)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-iris)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface)]"
+            className="bg-[var(--color-surface)] flex items-center gap-4 text-[var(--color-black)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-iris)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface)] p-0 rounded-none border-0"
           >
-            <span className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-current">
-              <ArrowLeftIcon className="h-7 w-7" />
-            </span>
-            <span className="text-2xl font-bold">Назад</span>
+            <BackArrowIcon />
+            <h4 className="font-bold">Назад</h4>
           </button>
 
-          <h2 className="text-[var(--color-black)] text-[3.25rem] font-bold leading-[1.05]">
-            Популярные вопросы
-          </h2>
+          <h2 className="text-[var(--color-black)] font-bold">Популярные вопросы</h2>
         </header>
 
         <ul className="flex flex-col divide-y divide-[var(--color-border)]">
@@ -64,7 +60,7 @@ export const FaqScreen = ({ onBack }: FaqScreenProps) => {
               <li key={question}>
                 <button
                   type="button"
-                  className="flex w-full items-center justify-between gap-4 px-1 py-4 text-left text-lg font-medium"
+                  className="flex w-full items-center justify-between gap-4 px-1 py-4 text-left text-lg font-medium border-none rounded-none"
                   onClick={() => toggleItem(index)}
                 >
                   <span>{question}</span>
@@ -82,9 +78,9 @@ export const FaqScreen = ({ onBack }: FaqScreenProps) => {
                     isOpen ? 'grid-rows-[1fr] opacity-100 py-2' : 'grid-rows-[0fr] opacity-0'
                   }`}
                 >
-                  <div className="overflow-hidden text-sm leading-relaxed text-[var(--color-muted)]">
+                  <p className="overflow-hidden leading-relaxed text-[var(--color-black)]">
                     {answer}
-                  </div>
+                  </p>
                 </div>
               </li>
             );
