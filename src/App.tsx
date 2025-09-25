@@ -1,12 +1,14 @@
-import './App.css';
+import { useState } from 'react';
+import GameScreen from './screens/GameScreen';
+import StartScreen from './screens/StartScreen';
 
 function App() {
-  return (
-    <>
-      <div>
-        <h1 className="font-bold underline text-sakura">Hello world!!!</h1>
-      </div>
-    </>
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  return isPlaying ? (
+    <GameScreen onBack={() => setIsPlaying(false)} onExit={() => setIsPlaying(false)} />
+  ) : (
+    <StartScreen onPlay={() => setIsPlaying(true)} />
   );
 }
 
