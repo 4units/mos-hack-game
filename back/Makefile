@@ -17,6 +17,12 @@ migration-up:
 migration-down:
 	@migrate -database $(DB_LOCAL_URL) -path $(MIGRATIONS_DIR) down
 
+migration-force:
+	@migrate -database $(DB_LOCAL_URL) -path $(MIGRATIONS_DIR) force 1
+
+migration-version:
+	@migrate -database $(DB_LOCAL_URL) -path $(MIGRATIONS_DIR) version
+
 create-migration:
 	@if [ -z "$(name)" ]; then \
 		echo "Need argument 'name=...'" && exit 1; \

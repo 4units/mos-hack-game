@@ -28,17 +28,12 @@ var (
 		"token is expired",
 		http.StatusUnauthorized,
 	)
-	ErrParseClaims = errors.New("failed to parse claims")
+	ErrParseClaims = errors.New("failed to parse Claims")
 )
 
-const (
-	claimUserId     = "user_id"
-	claimExpireTime = "expire_time"
-)
-
-type claims struct {
+type Claims struct {
 	jwt.RegisteredClaims
-	userId uuid.UUID
+	UserId uuid.UUID `json:"user_id"`
 }
 
 type TokenUsecase struct {
@@ -74,11 +69,14 @@ func NewTokenUsecase(cfg config.Authorization) (*TokenUsecase, error) {
 	}, nil
 }
 
-func (u *TokenUsecase) GetUserIDFromRequest(r *http.Request) (uuid.UUID, error) {
+func (u *TokenUsecase) GetVerifiedUserIDFromRequest(r *http.Request) (uuid.UUID, error) {
 	token, err := request.ParseFromRequest(
-		r, request.OAuth2Extractor, func(token *jwt.Token) (any, error) {
+		r, request.OAuth2Extractor, func(t *jwt.Token) (any, error) {
+			if _, ok := t.Method.(*jwt.SigningMethodRSA); !ok || t.Method.Alg() != jwt.SigningMethodRS256.Alg() {
+				return nil, fmt.Errorf("unexpected signing method: %s", t.Method.Alg())
+			}
 			return u.verifyKey, nil
-		}, request.WithClaims(&claims{}),
+		}, request.WithClaims(&Claims{}),
 	)
 	if err != nil {
 		switch {
@@ -93,22 +91,21 @@ func (u *TokenUsecase) GetUserIDFromRequest(r *http.Request) (uuid.UUID, error) 
 		}
 	}
 
-	switch c := token.Claims.(type) {
-	case claims:
-		return c.userId, nil
-	default:
+	cls, ok := token.Claims.(*Claims)
+	if !ok {
 		return uuid.Nil, ErrParseClaims
 	}
+	return cls.UserId, nil
 }
 
 func (u *TokenUsecase) GenerateUserToken(userID uuid.UUID) (string, error) {
 	t := jwt.NewWithClaims(
-		jwt.SigningMethodHS256,
-		&claims{
+		jwt.SigningMethodRS256,
+		&Claims{
 			RegisteredClaims: jwt.RegisteredClaims{
 				ExpiresAt: jwt.NewNumericDate(time.Now().Add(u.config.TokenTTL)),
 			},
-			userId: userID,
+			UserId: userID,
 		},
 	)
 	tokenString, err := t.SignedString(u.signKey)

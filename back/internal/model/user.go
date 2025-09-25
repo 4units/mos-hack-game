@@ -2,11 +2,11 @@ package model
 
 import (
 	"github.com/google/uuid"
+	"time"
 )
 
 type User struct {
-	ID       uuid.UUID
-	Name     string
-	Email    string
-	PassHash []byte
+	ID        uuid.UUID
+	Email     string
+	CreatedAt time.Time
 }

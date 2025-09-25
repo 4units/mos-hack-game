@@ -1,0 +1,4 @@
+DROP TABLE IF EXISTS email_passes;
+DROP TABLE IF EXISTS granted_roles;
+DROP TABLE IF EXISTS roles;
+DROP TABLE IF EXISTS users;

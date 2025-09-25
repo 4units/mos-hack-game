@@ -20,10 +20,15 @@ type Authorization struct {
 	TokenTTL       time.Duration `yaml:"token_ttl" env:"TOKEN_TTL"`
 }
 
+type Database struct {
+	PostgresURL string `yaml:"host" env:"DB_URL"`
+}
+
 type Config struct {
 	Host          Host          `yaml:"host"`
 	App           App           `yaml:"app"`
 	Authorization Authorization `yaml:"authorization"`
+	Postgres      Database      `yaml:"postgres"`
 }
 
 func LoadConfig(cfgPath string) (*Config, error) {

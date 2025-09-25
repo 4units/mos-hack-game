@@ -31,12 +31,31 @@ func Run(cfg *config.Config) error {
 	ctx, cancel := context.WithCancelCause(context.Background())
 	defer cancel(nil)
 
+	pool, err := postgres.NewPool(ctx, cfg.Postgres)
+	if err != nil {
+		return err
+	}
+	defer pool.Close()
+	log.Info("connected to postgres")
+
+	messageUsecase := usecase.NewQizeUsecase(
+		usecase.QuizUsecaseDeps{},
+	)
+
 	tokenUsecase, err := usecase.NewTokenUsecase(cfg.Authorization)
 	if err != nil {
 		return err
 	}
 
-	userStorage := postgres.NewUserStorage()
+	messageHandler := handler.NewMessageHandler(
+		handler.MessageHandlerDeps{
+			MessageProvider: messageUsecase,
+			MessageSender:   messageUsecase,
+			UserIDProvider:  tokenUsecase,
+		},
+	)
+
+	userStorage := postgres.NewUserStorage(pool)
 
 	userUsecase := usecase.New(
 		usecase.Deps{
@@ -48,6 +67,8 @@ func Run(cfg *config.Config) error {
 	userHandler := handler.NewUserHandler(
 		handler.UserHandlerDeps{
 			UserAuthenticator: userUsecase,
+			UserIDProvider:    tokenUsecase,
+			UserDataProvider:  userUsecase,
 		},
 	)
 
@@ -55,7 +76,8 @@ func Run(cfg *config.Config) error {
 
 	handler, err := router.Setup(
 		rt, router.Deps{
-			UserHandler: userHandler,
+			MessageHandler: messageHandler,
+			UserHandler:    userHandler,
 		},
 	)
 	if err != nil {
@@ -106,6 +128,13 @@ func Run(cfg *config.Config) error {
 
 	clsCtx, clsCancel := context.WithTimeout(context.Background(), cfg.App.ShutdownTimeout)
 	defer clsCancel()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		pool.Close()
+		log.Info("postgres pool is closed")
+	}()
 
 	wg.Add(1)
 	go func() {

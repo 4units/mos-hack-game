@@ -16,6 +16,8 @@ type Deps struct {
 func Setup(rt *mux.Router, deps Deps) (http.Handler, error) {
 	rt.Use(middleware.HandlePanic)
 
+	rt.HandleFunc("/user", deps.UserHandler.GetUserInfo).Methods(http.MethodGet)
+
 	userRoute := rt.PathPrefix("/user").Subrouter()
 
 	userRoute.HandleFunc("/register/email", deps.UserHandler.RegisterUserByEmail).Methods(http.MethodPost)

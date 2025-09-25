@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -45,8 +46,10 @@ type TokenProvider interface {
 }
 
 type UserStorage interface {
-	CreateUserByEmail(email string, hash []byte) error
-	GetUserByEmail(email string) (model.User, error)
+	CreateUserByEmail(ctx context.Context, email string, hash []byte) error
+	GetIDAndPassHash(ctx context.Context, email string) (uuid.UUID, []byte, error)
+	CreateAnonymouseUser(ctx context.Context) (uuid.UUID, error)
+	GetUserByID(ctx context.Context, id uuid.UUID) (*model.User, error)
 }
 
 type Deps struct {
@@ -64,12 +67,27 @@ func New(deps Deps) *Usecase {
 	}
 }
 
-func (u *Usecase) GenerateAnonymouseToken() (string, error) {
-	//TODO implement me
-	panic("implement me")
+func (u *Usecase) GetUserInfo(ctx context.Context, userID uuid.UUID) (*model.User, error) {
+	user, err := u.UserStorage.GetUserByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }
 
-func (u *Usecase) RegisterByEmail(email, password string) error {
+func (u *Usecase) CreateAnonymouseUser(ctx context.Context) (string, error) {
+	userID, err := u.UserStorage.CreateAnonymouseUser(ctx)
+	if err != nil {
+		return "", fmt.Errorf("failed to create anonymous user: %w", err)
+	}
+	token, err := u.TokenProvider.GenerateUserToken(userID)
+	if err != nil {
+		return "", fmt.Errorf("failed to generate user token: %w", err)
+	}
+	return token, nil
+}
+
+func (u *Usecase) RegisterByEmail(ctx context.Context, email, password string) error {
 	var (
 		hasUpperCaseLetters bool
 		hasLowerCaseLetters bool
@@ -110,14 +128,14 @@ func (u *Usecase) RegisterByEmail(email, password string) error {
 	if err != nil {
 		return err
 	}
-	if err = u.UserStorage.CreateUserByEmail(email, passwordHash); err != nil {
+	if err = u.UserStorage.CreateUserByEmail(ctx, email, passwordHash); err != nil {
 		return fmt.Errorf("failed to create user in storage by email: %w", err)
 	}
 	return nil
 }
 
-func (u *Usecase) AuthenticateByEmail(email, password string) (string, error) {
-	user, err := u.UserStorage.GetUserByEmail(email)
+func (u *Usecase) AuthenticateByEmail(ctx context.Context, email, password string) (string, error) {
+	userID, passHash, err := u.UserStorage.GetIDAndPassHash(ctx, email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return "", ErrUserNotExists
@@ -125,14 +143,14 @@ func (u *Usecase) AuthenticateByEmail(email, password string) (string, error) {
 		return "", fmt.Errorf("failed to get user by email: %w", err)
 	}
 
-	if err = bcrypt.CompareHashAndPassword(user.PassHash, []byte(password)); err != nil {
+	if err = bcrypt.CompareHashAndPassword(passHash, []byte(password)); err != nil {
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 			return "", ErrPasswordNotCorrect
 		}
 		return "", err
 	}
 
-	token, err := u.TokenProvider.GenerateUserToken(user.ID)
+	token, err := u.TokenProvider.GenerateUserToken(userID)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate user token: %w", err)
 	}
