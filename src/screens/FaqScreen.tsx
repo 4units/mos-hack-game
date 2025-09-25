@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { BackArrowIcon, ChevronRightIcon } from '../components/icons';
+import { ChevronRightIcon } from '../components/icons';
+import BaseHeader from './base/components/BaseHeader';
 
 type FaqItem = {
   question: string;
@@ -38,19 +39,7 @@ export const FaqScreen = ({ onBack }: FaqScreenProps) => {
   return (
     <main className="flex min-h-screen justify-center bg-[var(--color-surface)] px-6 py-8">
       <div className="flex w-full max-w-[25rem] flex-col gap-8 text-[var(--color-on-surface)]">
-        <header className="flex flex-col gap-6">
-          <button
-            type="button"
-            onClick={onBack}
-            aria-label="Назад"
-            className="bg-[var(--color-surface)] flex items-center gap-4 text-[var(--color-black)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-iris)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface)] p-0 rounded-none border-0"
-          >
-            <BackArrowIcon />
-            <h4 className="font-bold">Назад</h4>
-          </button>
-
-          <h2 className="text-[var(--color-black)] font-bold">Популярные вопросы</h2>
-        </header>
+        <BaseHeader onBack={onBack} />
 
         <ul className="flex flex-col divide-y divide-[var(--color-border)]">
           {faqItems.map(({ question, answer }, index) => {
