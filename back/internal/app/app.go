@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 )
 
@@ -96,14 +97,32 @@ func Run(cfg *config.Config) error {
 	}
 	log.Info("start shutdown")
 
+	wg := sync.WaitGroup{}
+	wgch := make(chan struct{})
+	go func() {
+		defer close(wgch)
+		wg.Wait()
+	}()
+
 	clsCtx, clsCancel := context.WithTimeout(context.Background(), cfg.App.ShutdownTimeout)
 	defer clsCancel()
 
-	if shutdownErr := server.Shutdown(clsCtx); err != nil {
-		err = errors.Join(err, shutdownErr)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if shutdownErr := server.Shutdown(clsCtx); err != nil {
+			err = errors.Join(err, shutdownErr)
+		}
+		log.Info("stop server", serverHostAttr)
+	}()
+
+	select {
+	case <-wgch:
+		log.Info("wait group is finished")
+	case <-clsCtx.Done():
+		log.Info("timeout for wait group is finished")
 	}
-	log.Info("stop server", serverHostAttr)
-	<-ctx.Done()
+
 	log.Info("app shutdown")
 	return err
 }
