@@ -252,6 +252,7 @@
 
 .main-bg {
   position: relative;
+  z-index: 0;
   background: linear-gradient(45deg, rgba(0, 0, 0, 1) 0%, var(--color-cumin) 100%);
   color: var(--color-white);
 }
@@ -263,4 +264,15 @@
   background: url('/src/assets/noise.png') repeat center;
   opacity: 0.05;
   pointer-events: none;
+  z-index: -1;
+}
+
+.main-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/src/assets/dots.png') repeat center;
+  opacity: 1;
+  pointer-events: none;
+  z-index: -1;
 }
