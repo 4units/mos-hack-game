@@ -3,7 +3,7 @@ type StartScreenProps = {
 };
 
 export const StartScreen = ({ onPlay }: StartScreenProps) => (
-  <main className="flex min-h-screen flex-col items-center justify-center gap-10 bg-[var(--color-surface)] px-6 pb-14 pt-10">
+  <main className="main-bg flex min-h-screen flex-col items-center justify-center gap-10 bg-[var(--color-surface)] px-6 pb-14 pt-10">
     <div className="flex w-full max-w-[25rem] flex-col gap-10">
       <div className="flex aspect-square w-full items-center justify-center bg-[#dedede]"></div>
 

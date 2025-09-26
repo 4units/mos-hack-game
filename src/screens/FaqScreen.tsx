@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { ChevronRightIcon } from '../components/icons';
 import BaseHeader from './base/components/BaseHeader';
-
 type FaqItem = {
   question: string;
   answer: string;
@@ -37,7 +36,7 @@ export const FaqScreen = ({ onBack }: FaqScreenProps) => {
   };
 
   return (
-    <main className="flex min-h-screen justify-center bg-[var(--color-surface)] px-6 py-8">
+    <main className="main-bg flex min-h-screen justify-center px-6 py-8">
       <div className="flex w-full max-w-[25rem] flex-col gap-8 text-[var(--color-on-surface)]">
         <BaseHeader onBack={onBack} />
 
@@ -67,9 +66,7 @@ export const FaqScreen = ({ onBack }: FaqScreenProps) => {
                     isOpen ? 'grid-rows-[1fr] opacity-100 py-2' : 'grid-rows-[0fr] opacity-0'
                   }`}
                 >
-                  <p className="overflow-hidden leading-relaxed text-[var(--color-black)]">
-                    {answer}
-                  </p>
+                  <p className="overflow-hidden text-white">{answer}</p>
                 </div>
               </li>
             );

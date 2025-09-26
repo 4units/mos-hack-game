@@ -11,7 +11,7 @@ const LightningIcon = ({ className }: IconProps) => (
   >
     <path
       d="M13 2L3 14H12L11 22L21 10H12L13 2Z"
-      stroke="black"
+      stroke="white"
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
