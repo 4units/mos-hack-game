@@ -5,5 +5,5 @@ func getResultCellByVector(x, y int) *ResultCell {
 }
 
 func (c Cell) isSame(cell Cell) bool {
-	return c.x == cell.x && c.y == cell.y
+	return c.X == cell.X && c.Y == cell.Y
 }

@@ -1,18 +1,20 @@
 package main
 
 import (
-	"fmt"
+	"strings"
 )
 
-func printWay(way [][]*ResultCell) {
+func getWay(way [][]*ResultCell) string {
+	var str strings.Builder
 	for y := len(way) - 1; y >= 0; y-- {
 		for x := 0; x < len(way); x++ {
 			if way[x][y] == nil {
-				fmt.Print("_ ")
+				str.WriteString("_")
 			} else {
-				fmt.Printf("%s ", way[x][y].letter)
+				str.WriteString(way[x][y].letter)
 			}
 		}
-		fmt.Println()
+		str.WriteString("\n")
 	}
+	return str.String()
 }

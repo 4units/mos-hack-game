@@ -24,7 +24,7 @@ func (l *Level) SearchAnswers() {
 					way[x][y] = &ResultCell{letter: strconv.Itoa(orderCellI + 1)}
 				}
 			}
-			if blockingCellsColumn, ok := l.blockingCells[x]; ok {
+			if blockingCellsColumn, ok := l.blockingCellsMap[x]; ok {
 				if _, ok = blockingCellsColumn[y]; ok {
 					way[x][y] = wallResultCell
 					filed[x][y] = -1
@@ -52,7 +52,7 @@ func (l *Level) selectFullFilledOrder(
 			return nil
 		}
 	}
-	filed[currentCell.x][currentCell.y] = 1
+	filed[currentCell.X][currentCell.Y] = 1
 	for xVector := -1; xVector <= 1; xVector++ {
 		for yVector := -1; yVector <= 1; yVector++ {
 			if _, ok := vectorToResultCell[xVector]; !ok {
@@ -61,8 +61,8 @@ func (l *Level) selectFullFilledOrder(
 			if _, ok := vectorToResultCell[xVector][yVector]; !ok {
 				continue
 			}
-			x := currentCell.x + xVector
-			y := currentCell.y + yVector
+			x := currentCell.X + xVector
+			y := currentCell.Y + yVector
 			if x < 0 ||
 				y < 0 ||
 				x == l.fieldSize ||
@@ -79,7 +79,7 @@ func (l *Level) selectFullFilledOrder(
 				copy(copiedWay[i], way[i])
 			}
 			copiedFiled[x][y] = 1
-			copiedWay[currentCell.x][currentCell.y] = getResultCellByVector(xVector, yVector)
+			copiedWay[currentCell.X][currentCell.Y] = getResultCellByVector(xVector, yVector)
 
 			newCell := Cell{x, y}
 			nextVisitedOrders := visitedOrders

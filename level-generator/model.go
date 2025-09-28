@@ -25,18 +25,19 @@ var startResultCell = &ResultCell{letter: "0"}
 var wallResultCell = &ResultCell{letter: "X"}
 
 type Cell struct {
-	x int
-	y int
+	X int `json:"x"`
+	Y int `json:"y"`
 }
 
 type Level struct {
-	fieldSize     int
-	blockingCells map[int]map[int]struct{}
-	orderCells    []Cell
-	startCell     Cell
-	endCell       Cell
-	Answers       [][][]*ResultCell
-	StartWay      [][]*ResultCell
+	fieldSize        int
+	blockingCellsMap map[int]map[int]struct{}
+	blockingCells    []Cell
+	orderCells       []Cell
+	startCell        Cell
+	endCell          Cell
+	Answers          [][][]*ResultCell
+	StartWay         [][]*ResultCell
 }
 
 type ResultCell struct {
@@ -46,20 +47,21 @@ type ResultCell struct {
 func NewLevel(fieldSize int, startCell, endCell Cell, orderCells []Cell, blockingCells []Cell) *Level {
 	blockers := make(map[int]map[int]struct{})
 	for _, cell := range blockingCells {
-		if _, ok := blockers[cell.x]; !ok {
-			blockers[cell.x] = make(map[int]struct{})
+		if _, ok := blockers[cell.X]; !ok {
+			blockers[cell.X] = make(map[int]struct{})
 		}
-		blockers[cell.x][cell.y] = struct{}{}
+		blockers[cell.X][cell.Y] = struct{}{}
 	}
 	if orderCells == nil {
 		orderCells = make([]Cell, 0)
 	}
 	return &Level{
-		fieldSize:     fieldSize,
-		orderCells:    orderCells,
-		blockingCells: blockers,
-		startCell:     startCell,
-		endCell:       endCell,
-		Answers:       make([][][]*ResultCell, 0),
+		fieldSize:        fieldSize,
+		orderCells:       orderCells,
+		blockingCellsMap: blockers,
+		blockingCells:    blockingCells,
+		startCell:        startCell,
+		endCell:          endCell,
+		Answers:          make([][][]*ResultCell, 0),
 	}
 }
