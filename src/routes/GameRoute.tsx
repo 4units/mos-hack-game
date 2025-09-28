@@ -6,7 +6,11 @@ const GameRoute = () => {
   const navigate = useNavigate();
 
   return (
-    <GameScreen onShowBase={() => navigate(routes.base)} onShowFaq={() => navigate(routes.faq)} />
+    <GameScreen
+      onShowBase={() => navigate(routes.base)}
+      onShowFaq={() => navigate(routes.faq)}
+      onStartLinkNumber={() => navigate(routes.linkNumber)}
+    />
   );
 };
 

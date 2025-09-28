@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import IconButton from '../components/IconButton';
-import { ArrowIcon, HomeIcon, LightningIcon, QuestionIcon, StarIcon } from '../components/icons';
+import { HomeIcon, LightningIcon, QuestionIcon, StarIcon } from '../components/icons';
 import { Modal } from '../components/modal';
 import EnergyModalContent from './game/components/EnergyModalContent';
 import GameStatusButton from './game/components/GameStatusButton';
@@ -9,13 +9,20 @@ import StarsModalContent from './game/components/StarsModalContent';
 type GameScreenProps = {
   onShowBase: () => void;
   onShowFaq: () => void;
+  onStartLinkNumber: () => void;
   energy?: number;
   score?: number;
 };
 
 type ActiveModal = 'energy' | 'stars' | null;
 
-export const GameScreen = ({ onShowBase, onShowFaq, energy = 5, score = 0 }: GameScreenProps) => {
+export const GameScreen = ({
+  onShowBase,
+  onShowFaq,
+  onStartLinkNumber,
+  energy = 5,
+  score = 0,
+}: GameScreenProps) => {
   const [activeModal, setActiveModal] = useState<ActiveModal>(null);
 
   const closeModal = () => setActiveModal(null);
@@ -59,40 +66,13 @@ export const GameScreen = ({ onShowBase, onShowFaq, energy = 5, score = 0 }: Gam
           ></section>
 
           <section className="flex justify-center" aria-label="Панель управления">
-            <div className="relative flex aspect-square w-[min(12rem,70vw)] items-center justify-center rounded-full bg-white">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="flex h-[5.25rem] w-[5.25rem] items-center justify-center rounded-full bg-[#D9D9D9]" />
-              </div>
-
-              <IconButton
-                aria-label="Вверх"
-                variant="ghost"
-                className="absolute left-1/2 top-[0.8rem] -translate-x-1/2"
-              >
-                <ArrowIcon direction="up" className="h-5 w-5" />
-              </IconButton>
-              <IconButton
-                aria-label="Вправо"
-                variant="ghost"
-                className="absolute right-[0.8rem] top-1/2 -translate-y-1/2"
-              >
-                <ArrowIcon direction="right" className="h-5 w-5" />
-              </IconButton>
-              <IconButton
-                aria-label="Вниз"
-                variant="ghost"
-                className="absolute bottom-[0.8rem] left-1/2 -translate-x-1/2"
-              >
-                <ArrowIcon direction="down" className="h-5 w-5" />
-              </IconButton>
-              <IconButton
-                aria-label="Влево"
-                variant="ghost"
-                className="absolute left-[0.8rem] top-1/2 -translate-y-1/2"
-              >
-                <ArrowIcon direction="left" className="h-5 w-5" />
-              </IconButton>
-            </div>
+            <button
+              type="button"
+              onClick={onStartLinkNumber}
+              className="w-full max-w-[16rem] rounded-xl border-0 bg-[var(--color-iris)] px-4 py-3 text-base font-semibold text-white shadow-[0_12px_30px_rgba(59,73,223,0.35)] transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(59,73,223,0.45)] active:translate-y-0"
+            >
+              <span>Пройти платформу</span>
+            </button>
           </section>
         </div>
       </main>
