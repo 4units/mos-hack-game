@@ -6,6 +6,9 @@ import (
 	"flag"
 	"fmt"
 	"hash/fnv"
+	answer_search "level-generator/internal/handlers/answer-search"
+	result_print "level-generator/internal/handlers/result-print"
+	"level-generator/internal/model"
 	"log"
 	"math/rand"
 	"os"
@@ -15,18 +18,19 @@ import (
 const generateFolder string = "./levels"
 
 type Result struct {
-	Blockers int           `json:"blockers"`
-	Orders   int           `json:"orders"`
-	Levels   []ResultLevel `json:"levels"`
+	FieldSize int           `json:"field_size"`
+	Orders    int           `json:"orders"`
+	Blockers  int           `json:"blockers"`
+	Levels    []ResultLevel `json:"levels"`
 }
 type ResultLevel struct {
-	FieldSize int    `json:"field_size"`
-	StartCell Cell   `json:"start_cell"`
-	EndCell   Cell   `json:"end_cell"`
-	Order     []Cell `json:"order"`
-	Blockers  []Cell `json:"blockers"`
+	FieldSize int          `json:"field_size"`
+	StartCell model.Cell   `json:"start_cell"`
+	EndCell   model.Cell   `json:"end_cell"`
+	Order     []model.Cell `json:"order"`
+	Blockers  []model.Cell `json:"blockers"`
 	// Answer is answers double slice with number-side quality:
-	// 0 - up, 1 - right, 2 - down, 3 - left, 4 - finish
+	// 0 - up, 1 - right, 2 - down, 3 - left, 4 - finish, 5 - block
 	Answer [][]int `json:"answer"`
 }
 
@@ -42,7 +46,7 @@ func main() {
 	validateFlags(fieldSize, blockerCells, orderCells)
 
 	os.Mkdir(generateFolder, os.ModePerm)
-	filePath := fmt.Sprintf("%s/%v_%v_%v.json", generateFolder, fieldSize, blockerCells, orderCells)
+	filePath := fmt.Sprintf("%s/%v_%v_%v.json", generateFolder, fieldSize, orderCells, blockerCells)
 	if _, err := os.Stat(filePath); os.IsExist(err) {
 		os.Remove(filePath)
 	}
@@ -68,6 +72,7 @@ func main() {
 	defer func() {
 		result.Orders = orderCells
 		result.Blockers = blockerCells
+		result.FieldSize = fieldSize
 		updatedJSON, err := json.MarshalIndent(result, "", "  ")
 		if err != nil {
 			fmt.Println("Error marshaling JSON:", err)
@@ -88,31 +93,31 @@ func main() {
 	haskMap := make(map[string]struct{})
 	for range maxTry {
 		go func() {
-			usedCells := make([]Cell, 0)
+			usedCells := make([]model.Cell, 0)
 			usedCells, start := getRandomCell(usedCells, fieldSize)
 			usedCells, end := getRandomCell(usedCells, fieldSize)
-			blockers := make([]Cell, blockerCells)
+			blockers := make([]model.Cell, blockerCells)
 			for i := 0; i < blockerCells; i++ {
 				usedCells, blockers[i] = getRandomCell(usedCells, fieldSize)
 			}
-			orders := make([]Cell, orderCells)
+			orders := make([]model.Cell, orderCells)
 			for i := 0; i < orderCells; i++ {
 				usedCells, orders[i] = getRandomCell(usedCells, fieldSize)
 			}
-			level := NewLevel(fieldSize, start, end, orders, blockers)
-			level.SearchAnswers()
+			level := model.NewLevel(fieldSize, start, end, orders, blockers)
+			answer_search.SearchAnswers(level)
 			if len(level.Answers) > 0 {
 				resultLevel := ResultLevel{
 					FieldSize: fieldSize,
-					StartCell: level.startCell,
-					EndCell:   level.endCell,
-					Order:     level.orderCells,
-					Blockers:  level.blockingCells,
+					StartCell: level.StartCell,
+					EndCell:   level.EndCell,
+					Order:     level.OrderCells,
+					Blockers:  level.BlockingCells,
 					Answer:    parseAnswer(level.Answers[0]),
 				}
 				fmt.Printf("%+v\n", result)
-				fmt.Println(getWay(level.StartWay))
-				fmt.Println(getWay(level.Answers[0]))
+				fmt.Println(result_print.GetWay(level.StartWay))
+				fmt.Println(result_print.GetWay(level.Answers[0]))
 				json, err := json.Marshal(result)
 				if err == nil {
 					sum := string(fnv.New64().Sum(json))
@@ -140,14 +145,14 @@ func main() {
 	}
 }
 
-func getRandomCell(usedCells []Cell, size int) ([]Cell, Cell) {
+func getRandomCell(usedCells []model.Cell, size int) ([]model.Cell, model.Cell) {
 	for {
 		x := rand.Intn(size)
 		y := rand.Intn(size)
 		used := false
-		cell := Cell{x, y}
+		cell := model.Cell{x, y}
 		for _, otherCells := range usedCells {
-			if otherCells.isSame(cell) {
+			if otherCells.Same(cell) {
 				used = true
 				break
 			}
@@ -173,7 +178,7 @@ var lettersToNumbers = map[string]int{
 	"X": 5,
 }
 
-func parseAnswer(resultCells [][]*ResultCell) [][]int {
+func parseAnswer(resultCells [][]*model.ResultCell) [][]int {
 	res := make([][]int, len(resultCells))
 	for i, resultCell := range resultCells {
 		res[i] = make([]int, len(resultCell))
@@ -185,7 +190,7 @@ func parseAnswer(resultCells [][]*ResultCell) [][]int {
 				number = -1
 			} else {
 				var ok bool
-				number, ok = lettersToNumbers[cell.letter]
+				number, ok = lettersToNumbers[cell.Letter]
 				if !ok {
 					number = 4 // finish
 				}
