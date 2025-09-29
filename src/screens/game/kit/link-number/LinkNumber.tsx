@@ -212,9 +212,7 @@ export const LinkNumber: React.FC<Props> = ({
         </Layer>
       )}
 
-      {win && (
-        <div style={{ marginTop: 10, color: '#58FFFF', fontWeight: 700 }}>✓ Уровень пройден!</div>
-      )}
+      {win && <h3 className="text-[var(--color-raspberry)]">Вы прошли!</h3>}
     </div>
   );
 };
