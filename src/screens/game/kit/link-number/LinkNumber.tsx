@@ -321,7 +321,12 @@ export const LinkNumber: React.FC<Props> = ({
         </div>
       )}
       <div className="absolute flex w-full justify-center bottom-0 left-0 right-0 z-0">
-        <img src={platformImg} alt="Платформа" className="max-w-full h-[227px]" />
+        <img
+          draggable={false}
+          src={platformImg}
+          alt="Платформа"
+          className="select-none pointer-events-none max-w-full h-[227px]"
+        />
       </div>
     </div>
   );
