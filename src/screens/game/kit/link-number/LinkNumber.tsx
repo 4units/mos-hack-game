@@ -314,14 +314,14 @@ export const LinkNumber: React.FC<Props> = ({
           <button
             type="button"
             aria-label="На следующую платформу"
-            className="rounded-[13px] border-[1px] border-[var(--color-raspberry)] bg-[var(--color-raspberry)]/20 w-full"
+            className="rounded-[13px] border-[1px] border-[var(--color-raspberry)] w-full"
           >
             <span className="text-[var(--color-raspberry)]">На следующую платформу</span>
           </button>
         </div>
       )}
       <div className="absolute flex w-full justify-center bottom-0 left-0 right-0 z-0">
-        <img src={platformImg} alt="Платформа" className="max-w-full" />
+        <img src={platformImg} alt="Платформа" className="max-w-full h-[227px]" />
       </div>
     </div>
   );
