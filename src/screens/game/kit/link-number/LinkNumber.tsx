@@ -167,7 +167,9 @@ export const LinkNumber: React.FC<Props> = ({
                       height={cellHeight}
                       align="center"
                       verticalAlign="middle"
-                      fontSize={Math.floor(Math.min(cellWidth, cellHeight) * 0.6)}
+                      fontSize={36}
+                      fontStyle="bold"
+                      fontFamily="Halvar Breit"
                       fill="#6088E4"
                     />
                   )}
@@ -189,7 +191,8 @@ export const LinkNumber: React.FC<Props> = ({
                         align="center"
                         verticalAlign="middle"
                         fontStyle="bold"
-                        fontSize={Math.floor(Math.min(cellWidth, cellHeight) * 0.5)}
+                        fontFamily="Halvar Breit"
+                        fontSize={36}
                         fill="#6088E4"
                       />
                     </Group>
