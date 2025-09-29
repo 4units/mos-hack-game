@@ -1,6 +1,7 @@
 {
-  "blockers": 2,
+  "field_size": 4,
   "orders": 2,
+  "blockers": 2,
   "levels": [
     {
       "field_size": 4,

@@ -1,7 +1,7 @@
 ### Как использовать
 Для генерации используется запуск с флагами:
 ```shell
-go run . -size=4 -timeout=5 -block=2 -order=2 -max-try=10000
+go run cmd/generate/main.go -size=4 -timeout=5 -block=2 -order=2 -max-try=10000
 ```
 - size - ширина поля
 - timeout - ограничение для длительности генераций
