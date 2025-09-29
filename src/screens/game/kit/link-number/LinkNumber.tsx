@@ -36,46 +36,37 @@ const CorneredPath: React.FC<{
           const curr = points[i];
           const next = points[i + 1];
 
-          // векторы
           const vx1 = curr.x - prev.x;
           const vy1 = curr.y - prev.y;
           const vx2 = next.x - curr.x;
           const vy2 = next.y - curr.y;
 
-          // длины
           const len1 = Math.hypot(vx1, vy1);
           const len2 = Math.hypot(vx2, vy2);
 
-          // проверка на угол (неколлинеарность)
-          const cross = vx1 * vy2 - vy1 * vx2; // 0 => коллинеарны
+          const cross = vx1 * vy2 - vy1 * vx2;
           const isCorner = Math.abs(cross) > 1e-6 && len1 > 0 && len2 > 0;
 
           if (isCorner) {
-            // нормали вдоль направлений
             const ux1 = vx1 / len1;
             const uy1 = vy1 / len1;
             const ux2 = vx2 / len2;
             const uy2 = vy2 / len2;
 
-            // радиус не должен быть больше половины соседних сегментов
             const safeR = Math.max(0.01, Math.min(radius, len1 / 2, len2 / 2));
 
-            // точка на первом сегменте за safeR до угла
             const beforeX = curr.x - ux1 * safeR;
             const beforeY = curr.y - uy1 * safeR;
-            // точка на втором сегменте за safeR после угла
             const afterX = curr.x + ux2 * safeR;
             const afterY = curr.y + uy2 * safeR;
 
             ctx.lineTo(beforeX, beforeY);
             ctx.arcTo(curr.x, curr.y, afterX, afterY, safeR);
           } else {
-            // просто прямая
             ctx.lineTo(curr.x, curr.y);
           }
         }
 
-        // завершаем последней точкой
         const last = points[points.length - 1];
         ctx.lineTo(last.x, last.y);
 
@@ -95,7 +86,7 @@ export const LinkNumber: React.FC<Props> = ({
   cellHeight = 56,
   cellGap = 16,
   padding = 12,
-  cornerRadiusPx, // если не передать — возьмём автоподбор ниже
+  cornerRadiusPx,
 }) => {
   const n = level.field_size;
   const stepX = cellWidth + cellGap;
@@ -107,7 +98,6 @@ export const LinkNumber: React.FC<Props> = ({
 
   const blockersSet = useMemo(() => new Set(level.blockers.map(k)), [level.blockers]);
 
-  // формируем список якорей по порядку: 1..m
   const anchors: Cell[] = useMemo(
     () => [level.start_cell, ...level.order, level.end_cell],
     [level.start_cell, level.order, level.end_cell]
@@ -119,9 +109,8 @@ export const LinkNumber: React.FC<Props> = ({
   const inBounds = (p: Cell) => p.x >= 0 && p.y >= 0 && p.x < n && p.y < n;
   const isBlocked = (p: Cell) => blockersSet.has(k(p));
 
-  // состояние пути
   const [path, setPath] = useState<Cell[]>([start]);
-  const [lockedIndex, setLockedIndex] = useState(0); // сколько якорей уже подтверждено (индекс в anchors)
+  const [lockedIndex, setLockedIndex] = useState(0);
   const draggingRef = useRef<boolean>(false);
 
   const visited = useMemo(() => new Set(path.map(k)), [path]);
@@ -133,7 +122,6 @@ export const LinkNumber: React.FC<Props> = ({
     if (!stage || !pos) {
       return path[path.length - 1];
     }
-
     const rawX = Math.floor((pos.x - padding) / stepX);
     const rawY = Math.floor((pos.y - padding) / stepY);
     const x = Math.min(Math.max(rawX, 0), n - 1);
@@ -143,19 +131,16 @@ export const LinkNumber: React.FC<Props> = ({
 
   function step(next: Cell) {
     if (!inBounds(next) || isBlocked(next)) return;
-
     const last = path[path.length - 1];
 
-    // backstep: возвращаемся на предыдущую клетку — срезаем хвост
     if (path.length >= 2 && eq(next, path[path.length - 2])) {
       setPath((p) => p.slice(0, -1));
       return;
     }
 
     if (!manhattanAdj(last, next)) return;
-    if (visited.has(k(next))) return; // запрет на самопересечение
+    if (visited.has(k(next))) return;
 
-    // запрещаем наступать на будущие якоря, кроме "следующего по порядку"
     const nextAnchorIndex = lockedIndex + 1;
     const nextAnchor = anchors[nextAnchorIndex];
     const isNextAnchor = nextAnchor && eq(next, nextAnchor);
@@ -169,7 +154,6 @@ export const LinkNumber: React.FC<Props> = ({
 
   function onPointerDown(e: KonvaEventObject<PointerEvent>) {
     const p = toCell(e);
-    // стартуем с головы пути
     if (eq(p, path[path.length - 1])) draggingRef.current = true;
   }
 
@@ -183,13 +167,11 @@ export const LinkNumber: React.FC<Props> = ({
     draggingRef.current = false;
   }
 
-  // победа: подтверждён последний якорь и покрыты все свободные клетки
   const win =
     lockedIndex === anchors.length - 1 &&
     path.length === freeCellsTotal &&
     eq(path[path.length - 1], end);
 
-  // точки (центры клеток) для линии
   const points = useMemo(
     () =>
       path.map((p) => ({
@@ -217,7 +199,39 @@ export const LinkNumber: React.FC<Props> = ({
         Stage,
         stageProps,
         <Layer>
-          {/* сетка */}
+          {/* 1) ЛИНИЯ — снизу */}
+          {points.length >= 2 && (
+            <CorneredPath points={points} stroke="#58FFFF" strokeWidth={2} radius={cornerR} />
+          )}
+
+          {/* 2) ЛАСТИК: стираем линию под видимыми клетками */}
+          {Array.from({ length: n }).map((_, y) =>
+            Array.from({ length: n }).map((__, x) => {
+              const p: Cell = { x, y };
+              const id = k(p);
+              const anchorIdx = anchors.findIndex((a) => eq(a, p));
+              const isFirstAnchor = anchorIdx === 0;
+              const isLastAnchor = anchorIdx === anchors.length - 1;
+              const showCellVisuals = !win || isFirstAnchor || isLastAnchor;
+
+              if (!showCellVisuals) return null;
+
+              return (
+                <Group key={`eraser-${id}`} x={padding + x * stepX} y={padding + y * stepY}>
+                  {/* destination-out «вырезает» пиксели линии под клеткой */}
+                  <Rect
+                    width={cellWidth}
+                    height={cellHeight}
+                    cornerRadius={10}
+                    fill="#000" // любой непрозрачный цвет
+                    globalCompositeOperation="destination-out"
+                  />
+                </Group>
+              );
+            })
+          )}
+
+          {/* 3) ВИЗУАЛЫ СЕТКИ — сверху (бордеры, блокеры, якоря) */}
           {Array.from({ length: n }).map((_, y) =>
             Array.from({ length: n }).map((__, x) => {
               const p: Cell = { x, y };
@@ -228,8 +242,6 @@ export const LinkNumber: React.FC<Props> = ({
 
               const isFirstAnchor = anchorIdx === 0;
               const isLastAnchor = anchorIdx === anchors.length - 1;
-
-              // показываем квадраты только если не win ИЛИ это первый/последний якорь
               const showCellVisuals = !win || isFirstAnchor || isLastAnchor;
 
               const borderColor = isVisited ? '#58FFFF' : '#6088E4';
@@ -242,8 +254,7 @@ export const LinkNumber: React.FC<Props> = ({
                     : '#6088E4';
 
               return (
-                <Group key={id} x={padding + x * stepX} y={padding + y * stepY}>
-                  {/* базовый квадрат клетки */}
+                <Group key={`cell-${id}`} x={padding + x * stepX} y={padding + y * stepY}>
                   {showCellVisuals && (
                     <Rect
                       width={cellWidth}
@@ -254,7 +265,6 @@ export const LinkNumber: React.FC<Props> = ({
                     />
                   )}
 
-                  {/* блокер (✕) скрываем при win */}
                   {showCellVisuals && blockersSet.has(id) && (
                     <Text
                       text="✕"
@@ -269,7 +279,6 @@ export const LinkNumber: React.FC<Props> = ({
                     />
                   )}
 
-                  {/* якоря: при win оставляем только первый и последний */}
                   {isAnchor && showCellVisuals && (
                     <Group>
                       <Rect
@@ -295,11 +304,6 @@ export const LinkNumber: React.FC<Props> = ({
                 </Group>
               );
             })
-          )}
-
-          {/* ЛИНИЯ */}
-          {points.length >= 2 && (
-            <CorneredPath points={points} stroke="#58FFFF" strokeWidth={2} radius={cornerR} />
           )}
         </Layer>
       )}
