@@ -146,14 +146,15 @@ export const LinkNumber: React.FC<Props> = ({
               const isVisited = visited.has(id);
               const anchorIdx = anchors.findIndex((a) => eq(a, p));
               const isAnchor = anchorIdx >= 0;
+
+              const borderColor = isVisited ? '#58FFFF' : '#6088E4';
               const anchorLabelFill = win
                 ? '#58FFFF'
-                : anchorIdx === 0
+                : anchorIdx === 0 || isVisited
                   ? '#58FFFF'
                   : anchorIdx === anchors.length - 1
                     ? '#DD41DB'
                     : '#6088E4';
-              const anchorFontSize = 36;
 
               return (
                 <Group key={id} x={padding + x * stepX} y={padding + y * stepY}>
@@ -161,13 +162,11 @@ export const LinkNumber: React.FC<Props> = ({
                     width={cellWidth}
                     height={cellHeight}
                     cornerRadius={10}
-                    stroke="#6088E4"
+                    stroke={
+                      anchorIdx === anchors.length - 1 && !isVisited ? '#DD41DB' : borderColor
+                    }
                     strokeWidth={2}
-                    opacity={1}
                   />
-                  {isVisited && (
-                    <Rect width={cellWidth} height={cellHeight} cornerRadius={10} fill="" />
-                  )}
                   {blockersSet.has(id) && (
                     <Text
                       text="✕"
@@ -175,7 +174,7 @@ export const LinkNumber: React.FC<Props> = ({
                       height={cellHeight}
                       align="center"
                       verticalAlign="middle"
-                      fontSize={anchorFontSize}
+                      fontSize={36}
                       fontStyle="bold"
                       fontFamily="Halvar Breit"
                       fill="#6088E4"
@@ -198,7 +197,7 @@ export const LinkNumber: React.FC<Props> = ({
                         verticalAlign="middle"
                         fontStyle="bold"
                         fontFamily="Halvar Breit"
-                        fontSize={anchorFontSize}
+                        fontSize={36}
                         fill={anchorLabelFill}
                       />
                     </Group>
