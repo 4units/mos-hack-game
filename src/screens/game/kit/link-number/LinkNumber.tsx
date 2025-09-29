@@ -147,27 +147,36 @@ export const LinkNumber: React.FC<Props> = ({
               const anchorIdx = anchors.findIndex((a) => eq(a, p));
               const isAnchor = anchorIdx >= 0;
 
+              const isFirstAnchor = anchorIdx === 0;
+              const isLastAnchor = anchorIdx === anchors.length - 1;
+
+              // показываем квадраты только если не win ИЛИ это первый/последний якорь
+              const showCellVisuals = !win || isFirstAnchor || isLastAnchor;
+
               const borderColor = isVisited ? '#58FFFF' : '#6088E4';
               const anchorLabelFill = win
                 ? '#58FFFF'
-                : anchorIdx === 0 || isVisited
+                : isFirstAnchor || isVisited
                   ? '#58FFFF'
-                  : anchorIdx === anchors.length - 1
+                  : isLastAnchor
                     ? '#DD41DB'
                     : '#6088E4';
 
               return (
                 <Group key={id} x={padding + x * stepX} y={padding + y * stepY}>
-                  <Rect
-                    width={cellWidth}
-                    height={cellHeight}
-                    cornerRadius={10}
-                    stroke={
-                      anchorIdx === anchors.length - 1 && !isVisited ? '#DD41DB' : borderColor
-                    }
-                    strokeWidth={2}
-                  />
-                  {blockersSet.has(id) && (
+                  {/* базовый квадрат клетки */}
+                  {showCellVisuals && (
+                    <Rect
+                      width={cellWidth}
+                      height={cellHeight}
+                      cornerRadius={10}
+                      stroke={isLastAnchor && !isVisited ? '#DD41DB' : borderColor}
+                      strokeWidth={2}
+                    />
+                  )}
+
+                  {/* блокер (✕) скрываем при win */}
+                  {showCellVisuals && blockersSet.has(id) && (
                     <Text
                       text="✕"
                       width={cellWidth}
@@ -180,7 +189,9 @@ export const LinkNumber: React.FC<Props> = ({
                       fill="#6088E4"
                     />
                   )}
-                  {isAnchor && (
+
+                  {/* якоря: при win оставляем только первый и последний */}
+                  {isAnchor && showCellVisuals && (
                     <Group>
                       <Rect
                         width={Math.max(0, cellWidth - 14)}
