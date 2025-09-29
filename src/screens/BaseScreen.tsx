@@ -27,7 +27,7 @@ export const BaseScreen = ({ onBack }: BaseScreenProps) => {
   };
 
   return (
-    <main className="main-bg flex min-h-screen justify-center bg-[var(--color-surface)] px-6 py-8">
+    <main className="main-bg flex min-h-screen justify-center bg-[var(--color-surface)]">
       <div className="flex w-full max-w-[25rem] flex-col gap-8 text-[var(--color-on-surface)]">
         <BaseHeader onBack={onBack} />
 

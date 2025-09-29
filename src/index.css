@@ -255,6 +255,7 @@
   z-index: 0;
   background: linear-gradient(45deg, rgba(0, 0, 0, 1) 0%, var(--color-cumin) 100%);
   color: var(--color-white);
+  padding: 24px 26px;
 }
 
 .main-bg::before {

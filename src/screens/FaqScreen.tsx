@@ -36,7 +36,7 @@ export const FaqScreen = ({ onBack }: FaqScreenProps) => {
   };
 
   return (
-    <main className="main-bg flex min-h-screen justify-center px-6 py-8">
+    <main className="main-bg flex min-h-screen justify-center">
       <div className="flex w-full max-w-[25rem] flex-col gap-8 text-[var(--color-on-surface)]">
         <BaseHeader onBack={onBack} />
 
