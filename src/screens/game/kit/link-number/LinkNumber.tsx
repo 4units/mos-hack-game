@@ -5,7 +5,9 @@ import type { Cell, LevelFormat } from './types';
 
 type Props = {
   level: LevelFormat;
-  cellSize?: number;
+  cellWidth?: number;
+  cellHeight?: number;
+  cellGap?: number;
   padding?: number;
 };
 
@@ -14,9 +16,20 @@ const k = (p: Cell) => `${p.x},${p.y}`;
 const eq = (a: Cell, b: Cell) => a.x === b.x && a.y === b.y;
 const manhattanAdj = (a: Cell, b: Cell) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y) === 1;
 
-export const LinkNumber: React.FC<Props> = ({ level, cellSize = 76, padding = 12 }) => {
+export const LinkNumber: React.FC<Props> = ({
+  level,
+  cellWidth = 57,
+  cellHeight = 56,
+  cellGap = 16,
+  padding = 12,
+}) => {
   const n = level.field_size;
-  const size = { W: n * cellSize + padding * 2, H: n * cellSize + padding * 2 };
+  const stepX = cellWidth + cellGap;
+  const stepY = cellHeight + cellGap;
+  const size = {
+    W: n * cellWidth + padding * 2 + (n - 1) * cellGap,
+    H: n * cellHeight + padding * 2 + (n - 1) * cellGap,
+  };
 
   const blockersSet = useMemo(() => new Set(level.blockers.map(k)), [level.blockers]);
 
@@ -47,8 +60,10 @@ export const LinkNumber: React.FC<Props> = ({ level, cellSize = 76, padding = 12
       return path[path.length - 1];
     }
 
-    const x = Math.floor((pos.x - padding) / cellSize);
-    const y = Math.floor((pos.y - padding) / cellSize);
+    const rawX = Math.floor((pos.x - padding) / stepX);
+    const rawY = Math.floor((pos.y - padding) / stepY);
+    const x = Math.min(Math.max(rawX, 0), n - 1);
+    const y = Math.min(Math.max(rawY, 0), n - 1);
     return { x, y };
   };
 
@@ -104,8 +119,8 @@ export const LinkNumber: React.FC<Props> = ({ level, cellSize = 76, padding = 12
 
   // polyline из центров клеток
   const poly = path.flatMap((p) => [
-    padding + p.x * cellSize + cellSize / 2,
-    padding + p.y * cellSize + cellSize / 2,
+    padding + p.x * stepX + cellWidth / 2,
+    padding + p.y * stepY + cellHeight / 2,
   ]);
 
   const stageProps = {
@@ -133,49 +148,49 @@ export const LinkNumber: React.FC<Props> = ({ level, cellSize = 76, padding = 12
               const isAnchor = anchorIdx >= 0;
 
               return (
-                <Group key={id} x={padding + x * cellSize} y={padding + y * cellSize}>
+                <Group key={id} x={padding + x * stepX} y={padding + y * stepY}>
                   <Rect
-                    width={cellSize}
-                    height={cellSize}
+                    width={cellWidth}
+                    height={cellHeight}
                     cornerRadius={10}
-                    stroke="#9fb5ff"
-                    strokeWidth={1}
+                    stroke="#6088E4"
+                    strokeWidth={2}
                     opacity={0.25}
                   />
                   {isVisited && (
-                    <Rect width={cellSize} height={cellSize} cornerRadius={10} fill="#58ffff22" />
+                    <Rect width={cellWidth} height={cellHeight} cornerRadius={10} fill="" />
                   )}
                   {blockersSet.has(id) && (
                     <Text
                       text="✕"
-                      width={cellSize}
-                      height={cellSize}
+                      width={cellWidth}
+                      height={cellHeight}
                       align="center"
                       verticalAlign="middle"
-                      fontSize={Math.floor(cellSize * 0.6)}
-                      fill="#bdcefa"
+                      fontSize={Math.floor(Math.min(cellWidth, cellHeight) * 0.6)}
+                      fill="#6088E4"
                     />
                   )}
                   {isAnchor && (
                     <Group>
                       <Rect
-                        width={cellSize - 14}
-                        height={cellSize - 14}
+                        width={Math.max(0, cellWidth - 14)}
+                        height={Math.max(0, cellHeight - 14)}
                         x={7}
                         y={7}
                         cornerRadius={12}
-                        fill={anchorIdx <= lockedIndex ? '#1919ef' : '#060698'}
+                        fill={anchorIdx <= lockedIndex ? '' : ''}
                         shadowBlur={anchorIdx <= lockedIndex ? 10 : 0}
                       />
                       <Text
                         text={String(anchorIdx + 1)}
-                        width={cellSize}
-                        height={cellSize}
+                        width={cellWidth}
+                        height={cellHeight}
                         align="center"
                         verticalAlign="middle"
                         fontStyle="bold"
-                        fontSize={Math.floor(cellSize * 0.5)}
-                        fill="#dee1ee"
+                        fontSize={Math.floor(Math.min(cellWidth, cellHeight) * 0.5)}
+                        fill="#6088E4"
                       />
                     </Group>
                   )}
@@ -187,7 +202,7 @@ export const LinkNumber: React.FC<Props> = ({ level, cellSize = 76, padding = 12
           {/* линия */}
           <Line
             points={poly}
-            stroke="#58ffff"
+            stroke="#58FFFF"
             strokeWidth={8}
             lineCap="round"
             lineJoin="round"
@@ -197,7 +212,7 @@ export const LinkNumber: React.FC<Props> = ({ level, cellSize = 76, padding = 12
       )}
 
       {win && (
-        <div style={{ marginTop: 10, color: '#3cffb9', fontWeight: 700 }}>✓ Уровень пройден!</div>
+        <div style={{ marginTop: 10, color: '#58FFFF', fontWeight: 700 }}>✓ Уровень пройден!</div>
       )}
     </div>
   );

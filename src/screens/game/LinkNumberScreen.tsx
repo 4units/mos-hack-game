@@ -6,16 +6,10 @@ import type { LevelFormat } from './kit/link-number/types';
 type LinkNumberScreenProps = {
   onBack: () => void;
   level: LevelFormat;
-  cellSize?: number;
   padding?: number;
 };
 
-const LinkNumberScreen = ({
-  onBack,
-  level,
-  cellSize = 88,
-  padding = 12,
-}: LinkNumberScreenProps) => (
+const LinkNumberScreen = ({ onBack, level, padding = 12 }: LinkNumberScreenProps) => (
   <main className="main-bg flex min-h-screen items-center justify-center bg-[var(--color-surface)] px-6 py-8">
     <div className="flex w-full max-w-[25rem] flex-col gap-6 text-[var(--color-on-surface)]">
       <header className="flex items-center gap-4">
@@ -26,7 +20,7 @@ const LinkNumberScreen = ({
       </header>
 
       <section className="flex justify-center">
-        <LinkNumber level={level} cellSize={cellSize} padding={padding} />
+        <LinkNumber level={level} padding={padding} />
       </section>
     </div>
   </main>
