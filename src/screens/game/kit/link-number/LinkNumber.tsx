@@ -219,7 +219,7 @@ export const LinkNumber: React.FC<Props> = ({
           )}
 
           {/* линия */}
-          <Line points={poly} stroke="#58FFFF" strokeWidth={8} lineCap="round" lineJoin="round" />
+          <Line points={poly} stroke="#58FFFF" strokeWidth={2} lineCap="round" lineJoin="round" />
         </Layer>
       )}
 
