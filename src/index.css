@@ -305,3 +305,11 @@
   pointer-events: none;
   z-index: -1;
 }
+
+.button-blur {
+  background: rgba(221, 65, 219, 0.2);
+  backdrop-filter: blur(80px);
+  -webkit-backdrop-filter: blur(80px); /* для Safari */
+  border-radius: 13px;
+  border: 1px solid var(--color-raspberry);
+}

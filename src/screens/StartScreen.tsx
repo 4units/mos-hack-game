@@ -43,6 +43,7 @@ export const StartScreen = ({ onPlay }: StartScreenProps) => (
       <button
         type="button"
         onClick={onPlay}
+        aria-label={'Как играть?'}
         className="mt-8 w-full rounded-[13px] border-0 bg-[var(--color-violet)] px-4 py-3"
       >
         <span className="font-medium text-white">Как играть?</span>

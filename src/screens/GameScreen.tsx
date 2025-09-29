@@ -5,6 +5,7 @@ import { Modal } from '../components/modal';
 import EnergyModalContent from './game/components/EnergyModalContent';
 import GameStatusButton from './game/components/GameStatusButton';
 import StarsModalContent from './game/components/StarsModalContent';
+import mainGazik from '../assets/main-gazik.png';
 
 type GameScreenProps = {
   onShowBase: () => void;
@@ -60,18 +61,21 @@ export const GameScreen = ({
             </div>
           </header>
 
-          <section
-            className="flex aspect-square items-center justify-center bg-[#dedede]"
-            aria-label="Игровое поле"
-          ></section>
+          <img
+            src={mainGazik}
+            alt="Газик на платформе"
+            className="w-[473px] h-auto select-none pointer-events-none"
+            draggable={false}
+          />
 
           <section className="flex justify-center" aria-label="Панель управления">
             <button
-              type="button"
               onClick={onStartLinkNumber}
-              className="w-full max-w-[16rem] rounded-xl border-0 bg-[var(--color-iris)] px-4 py-3 text-base font-semibold text-white shadow-[0_12px_30px_rgba(59,73,223,0.35)] transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(59,73,223,0.45)] active:translate-y-0"
+              type="button"
+              className="button-blur w-full"
+              aria-label={'Пройти платформу!'}
             >
-              <span>Пройти платформу</span>
+              <span className="text-[var(--color-raspberry)]">Пройти платформу!</span>
             </button>
           </section>
         </div>

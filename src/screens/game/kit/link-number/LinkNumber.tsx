@@ -308,13 +308,13 @@ export const LinkNumber: React.FC<Props> = ({
         </Layer>
       )}
 
-      {win && (
+      {!win && (
         <div className="relative flex items-center justify-center flex-col gap-[20px] z-1 mt-10">
           <h3 className="text-[var(--color-raspberry)]">Вы прошли!</h3>
           <button
             type="button"
-            aria-label="На следующую платформу"
-            className="rounded-[13px] border-[1px] border-[var(--color-raspberry)] w-full"
+            className="button-blur w-full"
+            aria-label={'На следующую платформу'}
           >
             <span className="text-[var(--color-raspberry)]">На следующую платформу</span>
           </button>
