@@ -2,7 +2,7 @@ import React, { useMemo, useRef, useState } from 'react';
 import { Stage, Layer, Rect, Text, Group, Shape } from 'react-konva';
 import type { KonvaEventObject } from 'konva/lib/Node';
 import type { Cell, LevelFormat } from './types';
-
+import platformImg from '../../../../assets/platform.png';
 type Props = {
   level: LevelFormat;
   cellWidth?: number;
@@ -308,7 +308,21 @@ export const LinkNumber: React.FC<Props> = ({
         </Layer>
       )}
 
-      {win && <h3 className="text-[var(--color-raspberry)]">Вы прошли!</h3>}
+      {win && (
+        <div className="relative flex items-center justify-center flex-col gap-[20px] z-1 mt-10">
+          <h3 className="text-[var(--color-raspberry)]">Вы прошли!</h3>
+          <button
+            type="button"
+            aria-label="На следующую платформу"
+            className="rounded-[13px] border-[1px] border-[var(--color-raspberry)] bg-[var(--color-raspberry)]/20 w-full"
+          >
+            <span className="text-[var(--color-raspberry)]">На следующую платформу</span>
+          </button>
+        </div>
+      )}
+      <div className="absolute flex w-full justify-center bottom-0 left-0 right-0 z-0">
+        <img src={platformImg} alt="Платформа" className="max-w-full" />
+      </div>
     </div>
   );
 };
