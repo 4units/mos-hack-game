@@ -155,7 +155,7 @@ export const LinkNumber: React.FC<Props> = ({
                     cornerRadius={10}
                     stroke="#6088E4"
                     strokeWidth={2}
-                    opacity={0.25}
+                    opacity={1}
                   />
                   {isVisited && (
                     <Rect width={cellWidth} height={cellHeight} cornerRadius={10} fill="" />
