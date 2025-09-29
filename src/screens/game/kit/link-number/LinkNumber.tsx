@@ -146,6 +146,14 @@ export const LinkNumber: React.FC<Props> = ({
               const isVisited = visited.has(id);
               const anchorIdx = anchors.findIndex((a) => eq(a, p));
               const isAnchor = anchorIdx >= 0;
+              const anchorLabelFill = win
+                ? '#58FFFF'
+                : anchorIdx === 0
+                  ? '#58FFFF'
+                  : anchorIdx === anchors.length - 1
+                    ? '#DD41DB'
+                    : '#6088E4';
+              const anchorFontSize = 36;
 
               return (
                 <Group key={id} x={padding + x * stepX} y={padding + y * stepY}>
@@ -167,7 +175,7 @@ export const LinkNumber: React.FC<Props> = ({
                       height={cellHeight}
                       align="center"
                       verticalAlign="middle"
-                      fontSize={36}
+                      fontSize={anchorFontSize}
                       fontStyle="bold"
                       fontFamily="Halvar Breit"
                       fill="#6088E4"
@@ -181,8 +189,6 @@ export const LinkNumber: React.FC<Props> = ({
                         x={7}
                         y={7}
                         cornerRadius={12}
-                        fill={anchorIdx <= lockedIndex ? '' : ''}
-                        shadowBlur={anchorIdx <= lockedIndex ? 10 : 0}
                       />
                       <Text
                         text={String(anchorIdx + 1)}
@@ -192,8 +198,8 @@ export const LinkNumber: React.FC<Props> = ({
                         verticalAlign="middle"
                         fontStyle="bold"
                         fontFamily="Halvar Breit"
-                        fontSize={36}
-                        fill="#6088E4"
+                        fontSize={anchorFontSize}
+                        fill={anchorLabelFill}
                       />
                     </Group>
                   )}
@@ -203,14 +209,7 @@ export const LinkNumber: React.FC<Props> = ({
           )}
 
           {/* линия */}
-          <Line
-            points={poly}
-            stroke="#58FFFF"
-            strokeWidth={8}
-            lineCap="round"
-            lineJoin="round"
-            shadowBlur={8}
-          />
+          <Line points={poly} stroke="#58FFFF" strokeWidth={8} lineCap="round" lineJoin="round" />
         </Layer>
       )}
 
