@@ -27,8 +27,5 @@ dist-ssr
 *.sln
 *.sw?
 
-# Golang files
-*/go.sum
-
 # Backend
 /back/config/config.yaml
