@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { Stage, Layer, Rect, Line, Text, Group } from 'react-konva';
+import { Stage, Layer, Rect, Text, Group, Shape } from 'react-konva';
 import type { KonvaEventObject } from 'konva/lib/Node';
 import type { Cell, LevelFormat } from './types';
 
@@ -9,6 +9,7 @@ type Props = {
   cellHeight?: number;
   cellGap?: number;
   padding?: number;
+  cornerRadiusPx?: number;
 };
 
 // helpers
@@ -16,12 +17,85 @@ const k = (p: Cell) => `${p.x},${p.y}`;
 const eq = (a: Cell, b: Cell) => a.x === b.x && a.y === b.y;
 const manhattanAdj = (a: Cell, b: Cell) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y) === 1;
 
+const CorneredPath: React.FC<{
+  points: { x: number; y: number }[];
+  stroke: string;
+  strokeWidth?: number;
+  radius: number;
+}> = ({ points, stroke, strokeWidth = 2, radius }) => {
+  return (
+    <Shape
+      sceneFunc={(ctx, shape) => {
+        if (!points || points.length < 2) return;
+
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+
+        for (let i = 1; i < points.length - 1; i++) {
+          const prev = points[i - 1];
+          const curr = points[i];
+          const next = points[i + 1];
+
+          // векторы
+          const vx1 = curr.x - prev.x;
+          const vy1 = curr.y - prev.y;
+          const vx2 = next.x - curr.x;
+          const vy2 = next.y - curr.y;
+
+          // длины
+          const len1 = Math.hypot(vx1, vy1);
+          const len2 = Math.hypot(vx2, vy2);
+
+          // проверка на угол (неколлинеарность)
+          const cross = vx1 * vy2 - vy1 * vx2; // 0 => коллинеарны
+          const isCorner = Math.abs(cross) > 1e-6 && len1 > 0 && len2 > 0;
+
+          if (isCorner) {
+            // нормали вдоль направлений
+            const ux1 = vx1 / len1;
+            const uy1 = vy1 / len1;
+            const ux2 = vx2 / len2;
+            const uy2 = vy2 / len2;
+
+            // радиус не должен быть больше половины соседних сегментов
+            const safeR = Math.max(0.01, Math.min(radius, len1 / 2, len2 / 2));
+
+            // точка на первом сегменте за safeR до угла
+            const beforeX = curr.x - ux1 * safeR;
+            const beforeY = curr.y - uy1 * safeR;
+            // точка на втором сегменте за safeR после угла
+            const afterX = curr.x + ux2 * safeR;
+            const afterY = curr.y + uy2 * safeR;
+
+            ctx.lineTo(beforeX, beforeY);
+            ctx.arcTo(curr.x, curr.y, afterX, afterY, safeR);
+          } else {
+            // просто прямая
+            ctx.lineTo(curr.x, curr.y);
+          }
+        }
+
+        // завершаем последней точкой
+        const last = points[points.length - 1];
+        ctx.lineTo(last.x, last.y);
+
+        ctx.strokeShape(shape);
+      }}
+      stroke={stroke}
+      strokeWidth={strokeWidth}
+      lineCap="round"
+      lineJoin="round"
+    />
+  );
+};
+
 export const LinkNumber: React.FC<Props> = ({
   level,
   cellWidth = 57,
   cellHeight = 56,
   cellGap = 16,
   padding = 12,
+  cornerRadiusPx, // если не передать — возьмём автоподбор ниже
 }) => {
   const n = level.field_size;
   const stepX = cellWidth + cellGap;
@@ -87,11 +161,9 @@ export const LinkNumber: React.FC<Props> = ({
     const isNextAnchor = nextAnchor && eq(next, nextAnchor);
 
     const forbiddenFutureAnchors = anchors.slice(nextAnchorIndex + 1).map(k);
-
     if (forbiddenFutureAnchors.includes(k(next))) return;
 
     setPath((p) => [...p, next]);
-
     if (isNextAnchor) setLockedIndex(nextAnchorIndex);
   }
 
@@ -117,11 +189,18 @@ export const LinkNumber: React.FC<Props> = ({
     path.length === freeCellsTotal &&
     eq(path[path.length - 1], end);
 
-  // polyline из центров клеток
-  const poly = path.flatMap((p) => [
-    padding + p.x * stepX + cellWidth / 2,
-    padding + p.y * stepY + cellHeight / 2,
-  ]);
+  // точки (центры клеток) для линии
+  const points = useMemo(
+    () =>
+      path.map((p) => ({
+        x: padding + p.x * stepX + cellWidth / 2,
+        y: padding + p.y * stepY + cellHeight / 2,
+      })),
+    [path, padding, stepX, stepY, cellWidth, cellHeight]
+  );
+
+  const autoRadius = Math.min(cellWidth, cellHeight) / 4;
+  const cornerR = Math.max(2, cornerRadiusPx ?? autoRadius);
 
   const stageProps = {
     width: size.W,
@@ -218,8 +297,10 @@ export const LinkNumber: React.FC<Props> = ({
             })
           )}
 
-          {/* линия */}
-          <Line points={poly} stroke="#58FFFF" strokeWidth={2} lineCap="round" lineJoin="round" />
+          {/* ЛИНИЯ */}
+          {points.length >= 2 && (
+            <CorneredPath points={points} stroke="#58FFFF" strokeWidth={2} radius={cornerR} />
+          )}
         </Layer>
       )}
 
