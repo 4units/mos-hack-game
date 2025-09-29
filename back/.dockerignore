@@ -1,0 +1,21 @@
+# Folders
+.git
+.idea
+api
+bin
+docs
+third_party
+make
+secrets
+
+# Pattern files
+*.md
+*.log
+*.proto
+*.swp
+*.DS_Store
+config/*.yaml
+
+# Certain files
+Makefile
+.env

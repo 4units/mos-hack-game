@@ -1,3 +1,7 @@
+# Secrets
+*.env
+*/secrets
+
 # Logs
 logs
 *.log
@@ -22,3 +26,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Golang files
+*/go.sum
+
+# Backend
+/back/config/config.yaml

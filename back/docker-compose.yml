@@ -1,0 +1,67 @@
+services:
+  postgres:
+    image: postgres:16.3
+    container_name: postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${DB_PORT}:${DB_PORT_INTERNAL}"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks: [ net ]
+  migrations:
+    image: migrate/migrate:latest
+    container_name: migrations
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./migrations:/migrations:ro
+    environment:
+      DB_URL: ${DB_URL}
+      RUN_MIGRATIONS: ${RUN_MIGRATIONS:-false}
+    entrypoint: >
+      sh -c '
+        if [ "$$RUN_MIGRATIONS" = "true" ]; then
+          migrate -path /migrations -database "$$DB_URL" up;
+        else
+          echo "skipped";
+        fi
+      '
+    networks: [ net ]
+  backend:
+    container_name: backend
+    image: mos-hack-game:local
+    volumes:
+      - ./.env:/app/.env
+      - ./config/config.yaml:/app/config/config.yaml
+      - ./secrets:/app/secrets
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: backend
+    ports:
+      - "${HTTP_PORT}:${HTTP_PORT}"
+    working_dir: /app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
+    command: [ "/backend" ]
+    networks: [ net ]
+
+volumes:
+  postgres_data:
+
+networks:
+  net:
