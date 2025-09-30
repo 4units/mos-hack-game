@@ -17,7 +17,7 @@ const RewardsScreen = ({ onBack }: RewardsScreenProps) => {
       <div className="relative w-full max-w-[25rem] text-white">
         <BaseHeader onBack={onBack} title={'Ваши успехи'} />
 
-        <section className="px-[26px] py-6">
+        <section className="py-6">
           <RewardsTabs active={tab} onChange={setTab} />
 
           {tab === 'achievements' ? (

@@ -11,11 +11,10 @@ const BaseHeader = ({ onBack, title }: BaseHeaderProps) => (
       type="button"
       onClick={onBack}
       aria-label="Назад"
-      className=" w-[118px] h-[32px] relative
-        inline-flex items-center overflow-hidden
+      className="p-0 relative w-fit gap-[12px]
+        flex flex-row items-center overflow-hidden
         border border-white rounded-full
-        bg-transparent text-white
-        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-iris)] focus-visible:ring-offset-2
+        bg-transparent text-white min-h-[32px]
       "
     >
       {/* Круглая область с иконкой */}
@@ -24,7 +23,7 @@ const BaseHeader = ({ onBack, title }: BaseHeaderProps) => (
         flex items-center justify-center
         bg-white
         text-[var(--color-violet)]
-        rounded-r-[133px] w-[48px] h-[32px] absolute left-0
+        rounded-r-[133px] flex-1 min-h-[32px] min-w-[48px]
       "
       >
         <BackArrowIcon />
@@ -33,8 +32,7 @@ const BaseHeader = ({ onBack, title }: BaseHeaderProps) => (
       {/* Текст */}
       <span
         className="
-       
-        text-white absolute right-[13px] font-normal text-1
+        text-white right-[13px] font-normal text-1 flex-2 pr-[13px]
       "
       >
         Назад
