@@ -1,4 +1,5 @@
 import { StarIcon } from '../../../components/icons';
+import achivGazik from '../../../assets/achivGazik.png';
 
 export type RewardCardProps = {
   title: string;
@@ -7,14 +8,18 @@ export type RewardCardProps = {
 };
 
 const RewardCard = ({ title, reward, unlocked = false }: RewardCardProps) => (
-  <div className="relative flex flex-col justify-end rounded-[20px] p-4 h-[180px] bg-gradient-to-br from-[#6ea3ff] via-[#5b79e6] to-[#2a3687] text-white shadow-[0_10px_30px_rgba(0,0,0,.35)]">
-    {/* image placeholder - replace later */}
-    <div className="absolute left-1/2 top-4 -translate-x-1/2 h-24 w-24 rounded-full bg-white/10" />
-    <div className={`mt-auto ${unlocked ? '' : 'opacity-70'}`}>
-      <p className="font-semibold leading-tight">{title}</p>
-      <div className="mt-2 inline-flex items-center gap-2 text-white/90">
-        <StarIcon className="h-4 w-4" />
-        <span className="font-bold">{reward}</span>
+  <div
+    className={`${unlocked ? 'opacity-100' : 'opacity-50'} relative flex flex-col justify-between items-center rounded-[20px] h-[140px] bg-gradient-to-tr from-[#58FFFF] to-[#1919EF] text-white`}
+  >
+    <img src={achivGazik} alt={title} className={'w-[62px] mt-[-10px]'} />
+    <p className="px-4 font-semibold text-[10px] text-center leading-tight">{title}</p>
+
+    <div className={`pb-[5px]`}>
+      <div className="w-full inline-flex items-center justify-center gap-1 text-white">
+        <StarIcon className="h-[12px] w-[12px] text-[var(--color-violet)]" />
+        <span className="font-semibold leading-tight text-[10px] text-[var(--color-violet)]">
+          {reward}
+        </span>
       </div>
     </div>
   </div>

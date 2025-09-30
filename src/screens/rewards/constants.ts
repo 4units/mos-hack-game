@@ -1,3 +1,5 @@
+import gift from '../../assets/gift.png';
+
 export type Achievement = {
   id: string;
   title: string;
@@ -22,11 +24,13 @@ export const achievements: Achievement[] = [
 export type Prize = {
   id: string;
   text: string;
+  img: string;
 };
 
 export const prizes: Prize[] = [
   {
     id: 'gpb-mobile-discount',
     text: 'Скидка 50% новым абонентам на все годовые тарифы Газпромбанк Мобайл',
+    img: gift,
   },
 ];
