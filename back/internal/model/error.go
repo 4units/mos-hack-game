@@ -16,6 +16,9 @@ var (
 		"answers size not equal to level size",
 		http.StatusBadRequest,
 	)
+	ErrLineGameAnswerHasLoop = http_errors.New(
+		"line game answer has loop", "incorrect answer", http.StatusBadRequest,
+	)
 	ErrLineGameAnswerCellsWayIncorrect = http_errors.New(
 		"provided answer with wrong number of cell need to be in way", "incorrect answer", http.StatusBadRequest,
 	)

@@ -112,18 +112,37 @@ func (l *LineGameUsecase) TryCompleteUserLevel(
 	verifiedOrders := 0
 	x, y := level.Start.X, level.Start.Y
 	checkedCells := 1
+
+	previousNumber := -1
+
+Loop:
 	for x != level.End.X || y != level.End.Y {
 		numberToMove := answer[y][x]
 		switch numberToMove {
 		case 0:
+			if previousNumber == 2 {
+				return model.ErrLineGameAnswerHasLoop
+			}
 			y--
 		case 1:
+			if previousNumber == 3 {
+				return model.ErrLineGameAnswerHasLoop
+			}
 			x++
 		case 2:
+			if previousNumber == 0 {
+				return model.ErrLineGameAnswerHasLoop
+			}
 			y++
 		case 3:
+			if previousNumber == 3 {
+				return model.ErrLineGameAnswerHasLoop
+			}
 			x--
+		default:
+			break Loop
 		}
+		previousNumber = numberToMove
 		checkedCells++
 		if verifiedOrders+1 <= len(level.Order) {
 			orderCell := level.Order[verifiedOrders]
