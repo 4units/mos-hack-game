@@ -7,7 +7,7 @@ const GameRoute = () => {
 
   return (
     <GameScreen
-      onShowGifts={() => navigate(routes.base)}
+      onShowGifts={() => navigate(routes.rewards)}
       onShowFaq={() => navigate(routes.faq)}
       onStartLinkNumber={() => navigate(routes.linkNumber)}
     />

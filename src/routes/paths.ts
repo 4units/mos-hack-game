@@ -4,6 +4,7 @@ export const routes = {
   faq: '/faq',
   base: '/base',
   linkNumber: '/game/link-number',
+  rewards: '/rewards',
 } as const;
 
 export type RouteKey = keyof typeof routes;

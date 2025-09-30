@@ -4,4 +4,6 @@ export { default as CloseIcon } from './CloseIcon';
 export { default as GiftIcon } from './GiftIcon.tsx';
 export { default as QuestionIcon } from './QuestionIcon';
 export { default as StarIcon } from './StarIcon';
+export { default as CupIcon } from './CupIcon.tsx';
+export { default as WinIcon } from './WinIcon.tsx';
 export type { Direction, IconProps } from './types';
