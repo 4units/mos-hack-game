@@ -1,6 +1,8 @@
 -include .env
 export
 
+DOCS_DIR := ../../mos-hack-game-api/docs
+
 generate-secrets:
 	openssl genrsa -out secrets/chat-server.rsa
 	openssl rsa -in secrets/chat-server.rsa -pubout > secrets/chat-server.rsa.pub
@@ -29,3 +31,6 @@ create-migration:
 	fi
 	@migrate create -ext sql -dir $(MIGRATIONS_DIR) -seq $(name)
 
+generate-docs:
+	rm -Rf $(DOCS_DIR)
+	swag init -o $(DOCS_DIR) -g cmd/main.go

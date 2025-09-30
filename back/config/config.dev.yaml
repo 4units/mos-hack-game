@@ -1,0 +1,28 @@
+app:
+  shutdown_timeout: 5s
+  log_mode: "dev" # debug, dev or prod
+authorization:
+  private_key_path: "secrets/chat-server.rsa"
+  public_key_path: "secrets/chat-server.rsa.pub"
+  token_ttl: 720h
+host:
+  http_port: 8081
+game:
+  line_game:
+    levels_dir: "levels"
+    rewards_conditions:
+      - max_time: 10s
+        reward:
+          soft_currency: 100
+      - max_time: 40s
+        reward:
+          soft_currency: 60
+      - max_time: 90s
+        reward:
+          soft_currency: 30
+  items_price:
+    line_game_hint_price: 50
+  balance:
+    start_soft_currency: 200
+router:
+  request_timeout: 5s
