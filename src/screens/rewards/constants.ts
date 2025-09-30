@@ -18,3 +18,15 @@ export const achievements: Achievement[] = [
   { id: 'quiz-5-day', title: 'Ответить на 5 вопросов квиза в день', reward: 100 },
   { id: 'quiz-10-day', title: 'Ответить на 10 вопросов квиза в день', reward: 200 },
 ];
+
+export type Prize = {
+  id: string;
+  text: string;
+};
+
+export const prizes: Prize[] = [
+  {
+    id: 'gpb-mobile-discount',
+    text: 'Скидка 50% новым абонентам на все годовые тарифы Газпромбанк Мобайл',
+  },
+];
