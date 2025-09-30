@@ -1,0 +1,11 @@
+app:
+  shutdown_timeout: 5s
+  log_mode: "dev" # debug, dev or prod
+authorization:
+  private_key_path: "secrets/chat-server.rsa"
+  public_key_path: "secrets/chat-server.rsa.pub"
+  token_ttl: 720h
+host:
+  http_port: 8081
+line_game:
+  levels_dir: "levels"

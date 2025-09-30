@@ -1,16 +1,15 @@
 package router
 
 import (
-	"fmt"
 	"github.com/4units/mos-hack-game/back/internal/handler"
 	"github.com/4units/mos-hack-game/back/internal/middleware"
-	"github.com/4units/mos-hack-game/back/internal/model/constantce"
 	"github.com/gorilla/mux"
 	"net/http"
 )
 
 type Deps struct {
-	UserHandler    *handler.UserHandler
+	UserHandler     *handler.UserHandler
+	LineGameHandler *handler.LineGameHandler
 }
 
 func Setup(rt *mux.Router, deps Deps) (http.Handler, error) {
@@ -24,5 +23,9 @@ func Setup(rt *mux.Router, deps Deps) (http.Handler, error) {
 	userRoute.HandleFunc("/token/email", deps.UserHandler.GetUserTokenByEmail).Methods(http.MethodPost)
 	userRoute.HandleFunc("/token/anonymous", deps.UserHandler.GetAnonymouseUserToken).Methods(http.MethodGet)
 
+	gameRouter := rt.PathPrefix("/game").Subrouter()
+
+	gameRouter.HandleFunc("/line/level", deps.LineGameHandler.GetUserLevel).Methods(http.MethodGet)
+	gameRouter.HandleFunc("/line/level", deps.LineGameHandler.CompleteLevel).Methods(http.MethodPost)
 	return rt, nil
 }

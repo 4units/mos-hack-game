@@ -7,6 +7,7 @@ import (
 	"github.com/4units/mos-hack-game/back/config"
 	"github.com/4units/mos-hack-game/back/internal/handler"
 	"github.com/4units/mos-hack-game/back/internal/router"
+	file_storage "github.com/4units/mos-hack-game/back/internal/storage/file-storage"
 	"github.com/4units/mos-hack-game/back/internal/storage/postgres"
 	"github.com/4units/mos-hack-game/back/internal/usecase"
 	logs "github.com/4units/mos-hack-game/back/pkg/logging"
@@ -38,22 +39,10 @@ func Run(cfg *config.Config) error {
 	defer pool.Close()
 	log.Info("connected to postgres")
 
-	messageUsecase := usecase.NewQizeUsecase(
-		usecase.QuizUsecaseDeps{},
-	)
-
 	tokenUsecase, err := usecase.NewTokenUsecase(cfg.Authorization)
 	if err != nil {
 		return err
 	}
-
-	messageHandler := handler.NewMessageHandler(
-		handler.MessageHandlerDeps{
-			MessageProvider: messageUsecase,
-			MessageSender:   messageUsecase,
-			UserIDProvider:  tokenUsecase,
-		},
-	)
 
 	userStorage := postgres.NewUserStorage(pool)
 
@@ -72,12 +61,31 @@ func Run(cfg *config.Config) error {
 		},
 	)
 
+	lineGameLevelStorage := file_storage.NewLineGameLevelStorage(cfg.LineGame)
+
+	progressStorage := postgres.NewProgressStorage(pool)
+
+	var lineGameUsecase = usecase.NewLineGameUsecase(
+		usecase.LineGameUsecaseDeps{
+			LineGameLevelStorage:    lineGameLevelStorage,
+			LineGameProgressStorage: progressStorage,
+		},
+		cfg.LineGame,
+	)
+	lineGameHandler := handler.NewLineGameHandler(
+		handler.LineGameHandlerDeps{
+			LineGameCompleteProcessor: lineGameUsecase,
+			LineGameLevelProvider:     lineGameUsecase,
+			UserIDExtractor:           tokenUsecase,
+		},
+	)
+
 	rt := mux.NewRouter()
 
 	handler, err := router.Setup(
 		rt, router.Deps{
-			MessageHandler: messageHandler,
-			UserHandler:    userHandler,
+			UserHandler:     userHandler,
+			LineGameHandler: lineGameHandler,
 		},
 	)
 	if err != nil {

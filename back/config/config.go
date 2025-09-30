@@ -20,6 +20,10 @@ type Authorization struct {
 	TokenTTL       time.Duration `yaml:"token_ttl" env:"TOKEN_TTL"`
 }
 
+type LineGame struct {
+	LevelsDir string `yaml:"levels_dir" env:"LEVELS_DIR"`
+}
+
 type Database struct {
 	PostgresURL string `yaml:"host" env:"DB_URL"`
 }
@@ -29,6 +33,7 @@ type Config struct {
 	App           App           `yaml:"app"`
 	Authorization Authorization `yaml:"authorization"`
 	Postgres      Database      `yaml:"postgres"`
+	LineGame      LineGame      `yaml:"line_game"`
 }
 
 func LoadConfig(cfgPath string) (*Config, error) {

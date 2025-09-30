@@ -3,15 +3,12 @@ package handler
 import (
 	"context"
 	"encoding/json"
-	"errors"
-	"fmt"
 	"github.com/4units/mos-hack-game/back/internal/model"
 	http_errors "github.com/4units/mos-hack-game/back/pkg/http-errors"
 	logs "github.com/4units/mos-hack-game/back/pkg/logging"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"net/http"
-	"strings"
 )
 
 type UserAuthenticator interface {
@@ -22,6 +19,10 @@ type UserAuthenticator interface {
 
 type UserDataProvider interface {
 	GetUserInfo(ctx context.Context, userID uuid.UUID) (*model.User, error)
+}
+
+type UserIDExtractor interface {
+	GetVerifiedUserIDFromRequest(r *http.Request) (uuid.UUID, error)
 }
 
 type UserHandlerDeps struct {
@@ -72,9 +73,7 @@ func (h *UserHandler) GetUserTokenByEmail(w http.ResponseWriter, r *http.Request
 		logs.Error("failed to decode the request", err)
 		return
 	}
-	if err := h.validate.Struct(req); err != nil {
-		http_errors.Send(w, err, http.StatusBadRequest)
-		logs.Error("failed to validate the request", err)
+	if validationErr(w, h.validate, req) {
 		return
 	}
 	token, err := h.UserAuthenticator.AuthenticateByEmail(r.Context(), req.Email, req.Password)
@@ -99,33 +98,11 @@ type RegisterUserRequest struct {
 func (h *UserHandler) RegisterUserByEmail(w http.ResponseWriter, r *http.Request) {
 	var req RegisterUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http_errors.Send(w, err, http.StatusBadRequest)
+		http_errors.SendBadRequest(w, "request body is invalid")
 		logs.Error("failed to decode the request", err)
 		return
 	}
-	if err := h.validate.Struct(req); err != nil {
-		var validatorErr validator.ValidationErrors
-		if errors.As(err, &validatorErr) {
-			errs := make([]string, len(validatorErr))
-			for i, fieldError := range validatorErr {
-				if fieldError.Param() != "" {
-					errs[i] = fmt.Sprintf(
-						"failed to validate field '%s', because of tag '%s:%s'", strings.ToLower(fieldError.Field()),
-						fieldError.Tag(), fieldError.Param(),
-					)
-				} else {
-					errs[i] = fmt.Sprintf(
-						"failed to validate field '%s', because of tag '%s'", strings.ToLower(fieldError.Field()),
-						fieldError.Tag(),
-					)
-				}
-				break
-			}
-			http_errors.SendBadRequest(w, strings.Join(errs, ";"))
-		} else {
-			http_errors.SendBadRequest(w, "failed to validate request")
-		}
-		logs.Error("failed to validate the request", err)
+	if validationErr(w, h.validate, req) {
 		return
 	}
 	err := h.UserAuthenticator.RegisterByEmail(r.Context(), req.Email, req.Password)

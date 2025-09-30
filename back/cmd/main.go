@@ -10,7 +10,7 @@ import (
 
 func main() {
 	var cfgPath, envPath string
-	flag.StringVar(&cfgPath, "config", "./config/config.yaml", "path to config")
+	flag.StringVar(&cfgPath, "config", "./config/config.dev.yaml", "path to config")
 	flag.StringVar(&envPath, "env", "./.env", "path to config")
 	flag.Parse()
 
