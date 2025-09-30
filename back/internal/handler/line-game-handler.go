@@ -25,10 +25,15 @@ type LineGameCompleteProcessor interface {
 	) error
 }
 
+type LineGameHintProvider interface {
+	GetLevelHint(ctx context.Context, userID uuid.UUID) ([][]int, error)
+}
+
 type LineGameHandlerDeps struct {
 	LineGameLevelProvider     LineGameLevelProvider
 	LineGameCompleteProcessor LineGameCompleteProcessor
 	UserIDExtractor           UserIDExtractor
+	LineGameHintProvider      LineGameHintProvider
 }
 
 type LineGameHandler struct {
@@ -133,4 +138,30 @@ func (l *LineGameHandler) CompleteLevel(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+}
+
+type GetLevelHintResponse struct {
+	Answer [][]int `json:"answer" validate:"required"`
+}
+
+func (l *LineGameHandler) GetLevelHint(w http.ResponseWriter, r *http.Request) {
+	userID, err := l.UserIDExtractor.GetVerifiedUserIDFromRequest(r)
+	if err != nil {
+		http_errors.SendWrapped(w, err)
+		logs.Error("failed to extract user id", err)
+		return
+	}
+	answer, err := l.LineGameHintProvider.GetLevelHint(r.Context(), userID)
+	if err != nil {
+		http_errors.SendWrapped(w, err)
+		logs.Error("failed to get user level hint", err)
+		return
+	}
+	resp := GetLevelHintResponse{
+		Answer: answer,
+	}
+	if err = json.NewEncoder(w).Encode(resp); err != nil {
+		http_errors.SendWrapped(w, err)
+		logs.Error("failed to encode response", err)
+	}
 }

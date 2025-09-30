@@ -17,6 +17,7 @@ type DocsWriter interface {
 type Deps struct {
 	UserHandler     *handler.UserHandler
 	LineGameHandler *handler.LineGameHandler
+	BalanceHandler  *handler.BalanceHandler
 	DocsWriter      DocsWriter
 }
 
@@ -34,8 +35,11 @@ func Setup(rt *mux.Router, deps Deps, cfg config.Router) (http.Handler, error) {
 
 	gameRouter := rt.PathPrefix("/game").Subrouter()
 
+	gameRouter.HandleFunc("/balance", deps.BalanceHandler.GetUserBalance).Methods(http.MethodGet)
+
 	gameRouter.HandleFunc("/line/level", deps.LineGameHandler.GetUserLevel).Methods(http.MethodGet)
 	gameRouter.HandleFunc("/line/level", deps.LineGameHandler.CompleteLevel).Methods(http.MethodPost)
+	gameRouter.HandleFunc("/line/hint", deps.LineGameHandler.GetLevelHint).Methods(http.MethodGet)
 
 	rt.PathPrefix("/swagger/").Handler(
 		httpSwagger.Handler(

@@ -6,10 +6,21 @@ import (
 	"fmt"
 	"github.com/4units/mos-hack-game/back/config"
 	"github.com/4units/mos-hack-game/back/internal/model"
+	http_errors "github.com/4units/mos-hack-game/back/pkg/http-errors"
 	"github.com/google/uuid"
 	"log/slog"
+	"net/http"
 	"time"
 )
+
+var (
+	ErrNotEnoughSoftCurrency = http_errors.NewSame("not enough soft currency", http.StatusForbidden)
+)
+
+type UserBalanceStorage interface {
+	GetSoftCurrency(ctx context.Context, userID uuid.UUID) (int, error)
+	UpdateSoftCurrency(ctx context.Context, userID uuid.UUID, count int) error
+}
 
 type LineLevelStorage interface {
 	GetStartGroupCode(ctx context.Context) (model.LineGameLevelGroupCode, error)
@@ -42,14 +53,20 @@ type LineLevelProgressStorage interface {
 type LineGameUsecaseDeps struct {
 	LineGameLevelStorage    LineLevelStorage
 	LineGameProgressStorage LineLevelProgressStorage
+	UserBalanceStorage      UserBalanceStorage
 }
 type LineGameUsecase struct {
 	LineGameUsecaseDeps
-	cfg config.LineGame
+	lineGameCfg config.LineGame
+	pricesCfg   config.ItemsPrice
 }
 
-func NewLineGameUsecase(deps LineGameUsecaseDeps, cfg config.LineGame) *LineGameUsecase {
-	return &LineGameUsecase{LineGameUsecaseDeps: deps, cfg: cfg}
+func NewLineGameUsecase(
+	deps LineGameUsecaseDeps,
+	lineGameCfg config.LineGame,
+	pricesCfg config.ItemsPrice,
+) *LineGameUsecase {
+	return &LineGameUsecase{LineGameUsecaseDeps: deps, lineGameCfg: lineGameCfg, pricesCfg: pricesCfg}
 }
 
 func (l *LineGameUsecase) GetUserLevel(ctx context.Context, userID uuid.UUID) (model.LineGameLevel, error) {
@@ -175,4 +192,24 @@ Loop:
 	}
 	slog.Debug("new level updated", slog.String("group_code", string(nextGroupCode)), slog.Int("level_id", levelID))
 	return nil
+}
+
+func (l *LineGameUsecase) GetLevelHint(ctx context.Context, userID uuid.UUID) ([][]int, error) {
+	balance, err := l.UserBalanceStorage.GetSoftCurrency(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get soft currency balance: %w", err)
+	}
+	if balance < l.pricesCfg.LineGameHintPrice {
+		return nil, ErrNotEnoughSoftCurrency
+	}
+	level, err := l.GetUserLevel(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user level: %w", err)
+	}
+	newBalance := balance - l.pricesCfg.LineGameHintPrice
+
+	if err = l.UserBalanceStorage.UpdateSoftCurrency(ctx, userID, newBalance); err != nil {
+		return nil, fmt.Errorf("failed to update soft currency balance: %w", err)
+	}
+	return level.Answer, nil
 }

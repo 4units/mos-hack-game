@@ -61,28 +61,41 @@ func Run(cfg *config.Config) error {
 		},
 	)
 
-	lineGameLevelStorage := file_storage.NewLineGameLevelStorage(cfg.LineGame)
+	lineGameLevelStorage := file_storage.NewLineGameLevelStorage(cfg.Game.LineGame)
 
 	progressStorage := postgres.NewProgressStorage(pool)
+	balanceStorage := postgres.NewBalanceStorage(pool)
 
 	var lineGameUsecase = usecase.NewLineGameUsecase(
 		usecase.LineGameUsecaseDeps{
 			LineGameLevelStorage:    lineGameLevelStorage,
 			LineGameProgressStorage: progressStorage,
+			UserBalanceStorage:      balanceStorage,
 		},
-		cfg.LineGame,
+		cfg.Game.LineGame,
+		cfg.Game.ItemsPrice,
 	)
 	lineGameHandler := handler.NewLineGameHandler(
 		handler.LineGameHandlerDeps{
 			LineGameCompleteProcessor: lineGameUsecase,
 			LineGameLevelProvider:     lineGameUsecase,
 			UserIDExtractor:           tokenUsecase,
+			LineGameHintProvider:      lineGameUsecase,
 		},
 	)
 
-	if err != nil {
-		return err
-	}
+	var balanceUsecase = usecase.NewBalanceUsecase(
+		usecase.BalanceUsecaseDeps{
+			BalanceStorage: balanceStorage,
+		}, cfg.Game.Balance,
+	)
+
+	balanceHandler := handler.NewBalanceHandler(
+		handler.BalanceHandlerDeps{
+			UserIDExtractor: tokenUsecase,
+			BalanceProvider: balanceUsecase,
+		},
+	)
 
 	rt := mux.NewRouter()
 
@@ -92,6 +105,7 @@ func Run(cfg *config.Config) error {
 		rt, router.Deps{
 			UserHandler:     userHandler,
 			LineGameHandler: lineGameHandler,
+			BalanceHandler:  balanceHandler,
 		}, cfg.Router,
 	)
 	if err != nil {

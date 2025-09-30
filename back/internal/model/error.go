@@ -28,4 +28,6 @@ var (
 	ErrLineGameAnswerOutOfBorders = http_errors.New(
 		"answers out of borders", "out of borders", http.StatusBadRequest,
 	)
+
+	ErrBalanceNotExists = errors.New("balance does not exist")
 )

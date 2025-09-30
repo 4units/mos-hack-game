@@ -7,7 +7,12 @@ authorization:
   token_ttl: 720h
 host:
   http_port: 8081
-line_game:
-  levels_dir: "levels"
+game:
+  line_game:
+    levels_dir: "levels"
+  items_price:
+    line_game_hint_price: 50
+  balance:
+    start_soft_currency: 200
 router:
   request_timeout: 5s
