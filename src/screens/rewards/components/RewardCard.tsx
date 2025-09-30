@@ -9,7 +9,10 @@ export type RewardCardProps = {
 
 const RewardCard = ({ title, reward, unlocked = false }: RewardCardProps) => (
   <div
-    className={`${unlocked ? 'opacity-100' : 'opacity-50'} relative flex flex-col justify-between items-center rounded-[20px] h-[140px] bg-gradient-to-tr from-[#58FFFF] to-[#1919EF] text-white`}
+    style={{
+      filter: unlocked ? 'none' : 'grayscale(0.6) brightness(0.8)',
+    }}
+    className={`relative flex flex-col justify-between items-center rounded-[20px] h-[140px] bg-gradient-to-tr from-[#58FFFF] to-[#1919EF] text-white`}
   >
     <img src={achivGazik} alt={title} className={'w-[62px] mt-[-10px]'} />
     <p className="px-4 font-semibold text-[10px] text-center leading-tight">{title}</p>
