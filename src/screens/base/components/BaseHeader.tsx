@@ -6,7 +6,7 @@ type BaseHeaderProps = {
 };
 
 const BaseHeader = ({ onBack, title }: BaseHeaderProps) => (
-  <header className="flex flex-col gap-6">
+  <header className="flex flex-col gap-10">
     <button
       type="button"
       onClick={onBack}

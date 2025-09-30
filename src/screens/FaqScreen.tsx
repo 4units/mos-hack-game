@@ -8,19 +8,25 @@ type FaqItem = {
 
 const faqItems: FaqItem[] = [
   {
-    question: 'Как проходить игру?',
+    question: 'Как играть?',
     answer:
-      'Начните с обучения, затем следуйте подсказкам на экране и выбирайте правильные ответы, чтобы двигаться дальше.',
+      'Помогите Газику пройти все платформы! На каждой платформе вас ждёт задачка – пройти все шаги начиная с 1го номера и заканчивая последним по порядку, обходя закрытые клетки, если они есть. Чем быстрее пройдёте, тем больше получите звёзд. Вы можете обменять подсказки на звёзды, а после прохождения получить призы!',
   },
   {
-    question: 'Как пополнить энергию?',
-    answer:
-      'Энергию можно восстановить, выполняя ежедневные задания или приобретая специальные наборы в магазине.',
+    question: 'Как получить ещё больше звёзд?',
+    answer: 'Отвечайте на вопросы квиза под виджетом звезды и получайте дополнительные звёзды.',
   },
   {
-    question: 'Что можно выиграть?',
-    answer:
-      'Участвуйте в еженедельных рейтингах и получайте доступ к эксклюзивным наградам и бонусам.',
+    question: 'Сколько всего платформ?',
+    answer: 'Всего 100 платформ.',
+  },
+  {
+    question: 'Как легко пройти платформу?',
+    answer: 'Вы можете обменять звёзды на подсказку шагов или блокировку времени.',
+  },
+  {
+    question: 'Как использовать подсказки?',
+    answer: 'Нажмите на виджет с подсказкой или блокировкой времени и подтвердите применение.',
   },
 ];
 
@@ -37,36 +43,43 @@ export const FaqScreen = ({ onBack }: FaqScreenProps) => {
 
   return (
     <main className="main-bg flex min-h-screen justify-center">
-      <div className="flex w-full max-w-[25rem] flex-col gap-8 text-[var(--color-on-surface)]">
+      <div className="flex w-full max-w-[25rem] flex-col gap-6 text-[var(--color-on-surface)]">
         <BaseHeader onBack={onBack} title="Популярные вопросы" />
 
-        <ul className="flex flex-col divide-y divide-[var(--color-border)]">
+        <ul className="flex flex-col gap-4">
           {faqItems.map(({ question, answer }, index) => {
             const isOpen = openedIndex === index;
 
             return (
-              <li key={question}>
+              <li
+                key={question}
+                className={`${isOpen ? 'bg-[var(--color-lily)] rounded-[12px] border-[1px] border-[var(--color-lily)]' : ''}`}
+              >
                 <button
                   type="button"
-                  className="flex w-full items-center justify-between gap-4 px-1 py-4 text-left text-lg font-medium border-none rounded-none"
+                  className={`flex w-full items-center justify-between gap-4 px-4 py-3 text-left text-lg font-medium ${isOpen ? 'border-none rounded-none' : 'rounded-[12px] border-[1px] border-white'}`}
                   onClick={() => toggleItem(index)}
                 >
-                  <span>{question}</span>
+                  {isOpen ? (
+                    <h4 className="text-[var(--color-violet)]">{question}</h4>
+                  ) : (
+                    <span className="text-1">{question}</span>
+                  )}
                   <span
                     className={`flex h-6 w-6 items-center justify-center transition-transform duration-200 ${
-                      isOpen ? 'rotate-90' : ''
+                      isOpen ? 'rotate-90 text-[var(--color-violet)]' : 'text-white'
                     }`}
                   >
-                    <ChevronRightIcon className="h-4 w-4" />
+                    <ChevronRightIcon />
                   </span>
                 </button>
 
                 <div
-                  className={`grid overflow-hidden px-1 transition-all duration-300 ease-out ${
-                    isOpen ? 'grid-rows-[1fr] opacity-100 py-2' : 'grid-rows-[0fr] opacity-0'
+                  className={`grid overflow-hidden transition-all duration-300 ease-out px-4 ${
+                    isOpen ? 'grid-rows-[1fr] opacity-100 pb-4' : 'grid-rows-[0fr] opacity-0'
                   }`}
                 >
-                  <p className="overflow-hidden text-white">{answer}</p>
+                  <p className="overflow-hidden text-black text-2">{answer}</p>
                 </div>
               </li>
             );
