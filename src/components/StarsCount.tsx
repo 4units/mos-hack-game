@@ -1,30 +1,40 @@
 import { StarIcon } from './icons';
+import { type ButtonHTMLAttributes, useMemo } from 'react';
+import { formatStars } from '../utils/format';
 
 type StarsCountProps = {
   number: number;
   disabled?: boolean;
+  color?: 'violet' | 'white';
+} & Pick<ButtonHTMLAttributes<HTMLButtonElement>, 'onClick'>;
+
+const StarsCount = ({ number, disabled, onClick, color = 'white' }: StarsCountProps) => {
+  const currentColor = useMemo(
+    () => (color === 'white' ? 'var(--color-white)' : 'var(--color-violet)'),
+    [color]
+  );
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      className={`
+    relative overflow-hidden flex flex-row gap-0 items-center justify-center border-[1px] rounded-[12px] min-h-[45px] w-[131px]
+  `}
+      style={{
+        color: currentColor,
+        borderColor: currentColor,
+      }}
+    >
+      <div
+        className="border-r-[1px] border-t-[1px] border-b-[1px] flex items-center justify-center rounded-[12px] absolute left-0 min-h-[45px] w-[56px]"
+        style={{ borderColor: currentColor }}
+      >
+        <StarIcon />
+      </div>
+      <span className="text-2 absolute right-[18px] font-medium">{formatStars(number)}</span>
+    </button>
+  );
 };
-
-const formatStars = (value: number) => {
-  if (value >= 1000000) {
-    const thousands = Math.floor(value / 1000);
-    return `${thousands}K`;
-  }
-
-  return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-};
-
-const StarsCount = ({ number, disabled }: StarsCountProps) => (
-  <button
-    type="button"
-    disabled={disabled}
-    className="relative overflow-hidden flex flex-row gap-0 items-center justify-center text-white border-white border-[1px] rounded-[12px] min-h-[45px] w-[131px]"
-  >
-    <div className="border-r-[1px] border-t-[1px] border-b-[1px] border-white flex items-center justify-center rounded-[12px] absolute left-0 min-h-[45px] w-[56px]">
-      <StarIcon />
-    </div>
-    <span className="text-2 absolute right-[18px] font-medium">{formatStars(number)}</span>
-  </button>
-);
 
 export default StarsCount;

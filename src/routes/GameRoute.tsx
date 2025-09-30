@@ -7,7 +7,7 @@ const GameRoute = () => {
 
   return (
     <GameScreen
-      onShowBase={() => navigate(routes.base)}
+      onShowGifts={() => navigate(routes.base)}
       onShowFaq={() => navigate(routes.faq)}
       onStartLinkNumber={() => navigate(routes.linkNumber)}
     />

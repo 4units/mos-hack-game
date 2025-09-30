@@ -1,4 +1,4 @@
-import { BackArrowIcon } from '../../../components/icons';
+import { BackArrowIcon } from './icons';
 
 type BaseHeaderProps = {
   onBack: () => void;

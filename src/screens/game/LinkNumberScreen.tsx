@@ -1,4 +1,4 @@
-import BaseHeader from '../base/components/BaseHeader';
+import BaseHeader from '../../components/BaseHeader';
 import { LinkNumber } from './kit/link-number/LinkNumber';
 import type { LevelFormat } from './kit/link-number/types';
 

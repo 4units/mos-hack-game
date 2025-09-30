@@ -1,6 +1,6 @@
 import type { IconProps } from './types';
 
-const HomeIcon = ({ className }: IconProps) => (
+const GiftIcon = ({ className }: IconProps) => (
   <svg
     className={className}
     width="32"
@@ -52,4 +52,4 @@ const HomeIcon = ({ className }: IconProps) => (
   </svg>
 );
 
-export default HomeIcon;
+export default GiftIcon;

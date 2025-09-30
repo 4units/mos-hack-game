@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ChevronRightIcon } from '../components/icons';
-import BaseHeader from './base/components/BaseHeader';
+import BaseHeader from '../components/BaseHeader';
 type FaqItem = {
   question: string;
   answer: string;

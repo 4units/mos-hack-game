@@ -1,22 +1,27 @@
 import IconButton from '../components/IconButton';
-import { HomeIcon, QuestionIcon } from '../components/icons';
+import { GiftIcon, QuestionIcon } from '../components/icons';
 import mainGazik from '../assets/main-gazik.png';
 import PlatformNumber from '../components/PlatformNumber.tsx';
 import StarsCount from '../components/StarsCount.tsx';
+import { useState } from 'react';
+import StarsQuizBottomSheet from './game/components/StarsQuizBottomSheet';
 
 type GameScreenProps = {
-  onShowBase: () => void;
+  onShowGifts: () => void;
   onShowFaq: () => void;
   onStartLinkNumber: () => void;
   score?: number;
 };
 
 export const GameScreen = ({
-  onShowBase,
+  onShowGifts,
   onShowFaq,
   onStartLinkNumber,
-  score = 22150,
+  score: initialScore = 22150,
 }: GameScreenProps) => {
+  const [score, setScore] = useState(initialScore);
+  const [isStarsOpen, setIsStarsOpen] = useState(false);
+
   return (
     <>
       <main className="main-bg flex min-h-screen items-center justify-center bg-[var(--color-surface)]">
@@ -24,15 +29,15 @@ export const GameScreen = ({
           <header className="flex items-center justify-between gap-4">
             <div className="flex items-center justify-center gap-4" aria-label="Статус игры">
               <PlatformNumber number={2} />
-              <StarsCount number={score} />
+              <StarsCount number={score} onClick={() => setIsStarsOpen(true)} />
             </div>
 
             <div className="flex items-center gap-4">
               <IconButton variant="ghost" aria-label="Справка" onClick={onShowFaq}>
                 <QuestionIcon />
               </IconButton>
-              <IconButton variant="ghost" aria-label="Домой" onClick={onShowBase}>
-                <HomeIcon />
+              <IconButton variant="ghost" aria-label="Подарки" onClick={onShowGifts}>
+                <GiftIcon />
               </IconButton>
             </div>
           </header>
@@ -56,6 +61,13 @@ export const GameScreen = ({
           </section>
         </div>
       </main>
+
+      <StarsQuizBottomSheet
+        isOpen={isStarsOpen}
+        onClose={() => setIsStarsOpen(false)}
+        score={score}
+        onScoreChange={setScore}
+      />
     </>
   );
 };
