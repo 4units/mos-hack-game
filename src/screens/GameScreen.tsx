@@ -15,7 +15,7 @@ export const GameScreen = ({
   onShowBase,
   onShowFaq,
   onStartLinkNumber,
-  score = 2150,
+  score = 22150,
 }: GameScreenProps) => {
   return (
     <>

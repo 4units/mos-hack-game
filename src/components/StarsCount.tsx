@@ -5,6 +5,15 @@ type StarsCountProps = {
   disabled?: boolean;
 };
 
+const formatStars = (value: number) => {
+  if (value >= 1000000) {
+    const thousands = Math.floor(value / 1000);
+    return `${thousands}K`;
+  }
+
+  return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+};
+
 const StarsCount = ({ number, disabled }: StarsCountProps) => (
   <button
     type="button"
@@ -14,7 +23,7 @@ const StarsCount = ({ number, disabled }: StarsCountProps) => (
     <div className="border-r-[1px] border-t-[1px] border-b-[1px] border-white flex items-center justify-center rounded-[12px] absolute left-0 min-h-[45px] w-[56px]">
       <StarIcon />
     </div>
-    <span className="text-2 absolute right-[18px]">{number}</span>
+    <span className="text-2 absolute right-[18px] font-medium">{formatStars(number)}</span>
   </button>
 );
 
