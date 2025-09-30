@@ -8,6 +8,15 @@ import (
 	"log"
 )
 
+//	@title			MosHackGame API
+//	@version		1.0
+//	@description	Server for Moscow hackathon game project.
+
+//	@contact.name	API Support
+//	@contact.email	iamvkosarev@gmail.com
+
+//	@host		localhost:8081
+
 func main() {
 	var cfgPath, envPath string
 	flag.StringVar(&cfgPath, "config", "./config/config.dev.yaml", "path to config")

@@ -68,6 +68,7 @@ services:
       - ./config/config.dev.yaml:/app/config/config.dev.yaml
       - ./secrets:/app/secrets
       - ./levels:/app/levels
+      - ./docs/swagger.json:/app/docs/swagger.json
     build:
       context: .
       dockerfile: Dockerfile

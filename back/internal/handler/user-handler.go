@@ -47,6 +47,13 @@ type RegisterAnonymousResponse struct {
 	Token string `json:"token"`
 }
 
+// GetAnonymouseUserToken godoc
+// @Summary      Provide anonymouse user token
+// @Description  create new token
+// @Tags         user
+// @Produce      json
+// @Success      200  {object}  RegisterAnonymousResponse
+// @Router       /user/token/anonymous [get]
 func (h *UserHandler) GetAnonymouseUserToken(w http.ResponseWriter, r *http.Request) {
 	token, err := h.UserAuthenticator.CreateAnonymouseUser(r.Context())
 	if err != nil {
@@ -66,6 +73,10 @@ type AuthenticateUserRequest struct {
 	Password string `json:"password" validate:"required,min=8"`
 }
 
+type AuthenticateUserResponse struct {
+	Token string `json:"token"`
+}
+
 func (h *UserHandler) GetUserTokenByEmail(w http.ResponseWriter, r *http.Request) {
 	var req AuthenticateUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -82,12 +93,14 @@ func (h *UserHandler) GetUserTokenByEmail(w http.ResponseWriter, r *http.Request
 		logs.Error("failed to authenticate the user", err)
 		return
 	}
-	if err = json.NewEncoder(w).Encode(token); err != nil {
+	resp := AuthenticateUserResponse{
+		Token: token,
+	}
+	if err = json.NewEncoder(w).Encode(resp); err != nil {
 		http_errors.SendInternal(w)
 		logs.Error("failed to encode the token", err)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
 }
 
 type RegisterUserRequest struct {

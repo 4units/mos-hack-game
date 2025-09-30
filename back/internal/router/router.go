@@ -1,15 +1,22 @@
 package router
 
 import (
+	_ "github.com/4units/mos-hack-game-api/docs"
 	"github.com/4units/mos-hack-game/back/internal/handler"
 	"github.com/4units/mos-hack-game/back/internal/middleware"
 	"github.com/gorilla/mux"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 	"net/http"
 )
+
+type DocsWriter interface {
+	WriteConfig(cfg *httpSwagger.Config)
+}
 
 type Deps struct {
 	UserHandler     *handler.UserHandler
 	LineGameHandler *handler.LineGameHandler
+	DocsWriter      DocsWriter
 }
 
 func Setup(rt *mux.Router, deps Deps) (http.Handler, error) {
@@ -27,5 +34,14 @@ func Setup(rt *mux.Router, deps Deps) (http.Handler, error) {
 
 	gameRouter.HandleFunc("/line/level", deps.LineGameHandler.GetUserLevel).Methods(http.MethodGet)
 	gameRouter.HandleFunc("/line/level", deps.LineGameHandler.CompleteLevel).Methods(http.MethodPost)
+
+	rt.PathPrefix("/swagger/").Handler(
+		httpSwagger.Handler(
+			httpSwagger.DeepLinking(true),
+			httpSwagger.DocExpansion("none"),
+			httpSwagger.DomID("swagger-ui"),
+		),
+	).Methods(http.MethodGet)
+
 	return rt, nil
 }

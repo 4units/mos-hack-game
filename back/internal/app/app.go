@@ -80,7 +80,13 @@ func Run(cfg *config.Config) error {
 		},
 	)
 
+	if err != nil {
+		return err
+	}
+
 	rt := mux.NewRouter()
+
+	port := fmt.Sprintf(":%v", cfg.Host.HttpPort)
 
 	handler, err := router.Setup(
 		rt, router.Deps{
@@ -94,7 +100,7 @@ func Run(cfg *config.Config) error {
 
 	server := &http.Server{
 		Handler: handler,
-		Addr:    fmt.Sprintf(":%v", cfg.Host.HttpPort),
+		Addr:    port,
 	}
 	serverHostAttr := slog.String("host", server.Addr)
 
