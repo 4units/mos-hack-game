@@ -3,7 +3,8 @@ import { LinkNumber } from './kit/link-number/LinkNumber';
 import type { LevelFormat } from './kit/link-number/types';
 import StarsCount from '../../components/StarsCount.tsx';
 import PlatformNumber from '../../components/PlatformNumber.tsx';
-import { ClockIcon } from '../../components/icons/index.ts';
+import { ClockIcon, GiftIcon, QuestionIcon } from '../../components/icons/index.ts';
+import IconButton from '../../components/IconButton.tsx';
 
 type LinkNumberScreenProps = {
   onBack: () => void;
@@ -13,8 +14,18 @@ type LinkNumberScreenProps = {
 
 const LinkNumberScreen = ({ onBack, level, padding = 12 }: LinkNumberScreenProps) => (
   <main className="main-bg flex min-h-screen justify-center">
-    <div className="flex w-full max-w-[25rem] flex-col gap-6 text-[var(--color-on-surface)]">
-      <BaseHeader onBack={onBack} />
+    <div className="flex w-full max-w-[25rem] flex-col gap-[58px] text-[var(--color-on-surface)]">
+      <div className="flex items-center justify-between">
+        <BaseHeader onBack={onBack} />
+        <div className="flex items-center gap-4">
+          <IconButton variant="ghost" aria-label="Справка" onClick={() => {}}>
+            <QuestionIcon />
+          </IconButton>
+          <IconButton variant="ghost" aria-label="Подарки" onClick={() => {}}>
+            <GiftIcon />
+          </IconButton>
+        </div>
+      </div>
       <div className={'flex flex-row justify-between'}>
         <PlatformNumber number={2} />
         <StarsCount ariaLabel={'Количество звёзд'} number={10} />
