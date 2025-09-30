@@ -33,7 +33,7 @@ export const StartScreen = ({ onPlay }: StartScreenProps) => (
     >
       <div className="flex flex-col gap-[23px]">
         <h1 className="text-[var(--color-black)]">Помогите Газику пройти платформы</h1>
-        <p className="text-[var(--color-black)] font-medium">
+        <p className="text-[var(--color-black)] font-medium text-2">
           На каждой платформе нужно пройти все шаги начиная с 1го номера и заканчивая последним по
           порядку, обходя закрытые клетки, если они есть. Вы можете обменять звёзды на подсказки, а
           после прохождения получить призы!
@@ -46,7 +46,7 @@ export const StartScreen = ({ onPlay }: StartScreenProps) => (
         aria-label={'Как играть?'}
         className="mt-8 w-full rounded-[13px] border-0 bg-[var(--color-violet)] px-4 py-3"
       >
-        <span className="font-medium text-white">Как играть?</span>
+        <span className="font-medium text-white text-1">Как играть?</span>
       </button>
     </section>
   </main>

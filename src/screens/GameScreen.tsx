@@ -1,35 +1,30 @@
-import { useState } from 'react';
 import IconButton from '../components/IconButton';
-import { HomeIcon, LightningIcon, QuestionIcon, StarIcon } from '../components/icons';
-import { Modal } from '../components/modal';
-import EnergyModalContent from './game/components/EnergyModalContent';
-import GameStatusButton from './game/components/GameStatusButton';
-import StarsModalContent from './game/components/StarsModalContent';
+import { HomeIcon, QuestionIcon } from '../components/icons';
 import mainGazik from '../assets/main-gazik.png';
+import PlatformNumber from '../components/PlatformNumber.tsx';
+import StarsCount from '../components/StarsCount.tsx';
 
 type GameScreenProps = {
   onShowBase: () => void;
   onShowFaq: () => void;
   onStartLinkNumber: () => void;
-  energy?: number;
   score?: number;
 };
 
-type ActiveModal = 'energy' | 'stars' | null;
+// type ActiveModal = 'energy' | 'stars' | null;
 
 export const GameScreen = ({
   onShowBase,
   onShowFaq,
   onStartLinkNumber,
-  energy = 5,
-  score = 0,
+  score = 2150,
 }: GameScreenProps) => {
-  const [activeModal, setActiveModal] = useState<ActiveModal>(null);
-
-  const closeModal = () => setActiveModal(null);
-
-  const energyModalId = 'energy-modal-heading';
-  const starsModalId = 'stars-modal-heading';
+  // const [activeModal, setActiveModal] = useState<ActiveModal>(null);
+  //
+  // const closeModal = () => setActiveModal(null);
+  //
+  // const energyModalId = 'energy-modal-heading';
+  // const starsModalId = 'stars-modal-heading';
 
   return (
     <>
@@ -37,18 +32,20 @@ export const GameScreen = ({
         <div className="flex w-full max-w-[25rem] flex-col gap-7 text-[var(--color-on-surface)]">
           <header className="flex items-center justify-between gap-4">
             <div className="flex items-center justify-center gap-4" aria-label="Статус игры">
-              <GameStatusButton
-                label="Количество энергии"
-                icon={<LightningIcon className="h-6 w-6" />}
-                value={energy}
-                onClick={() => setActiveModal('energy')}
-              />
-              <GameStatusButton
-                label="Количество очков"
-                icon={<StarIcon className="h-6 w-6" />}
-                value={score}
-                onClick={() => setActiveModal('stars')}
-              />
+              <PlatformNumber number={2} />
+              <StarsCount number={score} />
+              {/*<GameStatusButton*/}
+              {/*  label="Количество энергии"*/}
+              {/*  icon={<LightningIcon className="h-6 w-6" />}*/}
+              {/*  value={energy}*/}
+              {/*  onClick={() => setActiveModal('energy')}*/}
+              {/*/>*/}
+              {/*<GameStatusButton*/}
+              {/*  label="Количество очков"*/}
+              {/*  icon={<StarIcon className="h-6 w-6" />}*/}
+              {/*  value={score}*/}
+              {/*  onClick={() => setActiveModal('stars')}*/}
+              {/*/>*/}
             </div>
 
             <div className="flex items-center gap-4">
@@ -81,13 +78,13 @@ export const GameScreen = ({
         </div>
       </main>
 
-      <Modal isOpen={activeModal === 'energy'} onClose={closeModal} labelledBy={energyModalId}>
-        <EnergyModalContent onClose={closeModal} headingId={energyModalId} />
-      </Modal>
+      {/*<Modal isOpen={activeModal === 'energy'} onClose={closeModal} labelledBy={energyModalId}>*/}
+      {/*  <EnergyModalContent onClose={closeModal} headingId={energyModalId} />*/}
+      {/*</Modal>*/}
 
-      <Modal isOpen={activeModal === 'stars'} onClose={closeModal} labelledBy={starsModalId}>
-        <StarsModalContent onClose={closeModal} headingId={starsModalId} />
-      </Modal>
+      {/*<Modal isOpen={activeModal === 'stars'} onClose={closeModal} labelledBy={starsModalId}>*/}
+      {/*  <StarsModalContent onClose={closeModal} headingId={starsModalId} />*/}
+      {/*</Modal>*/}
     </>
   );
 };
