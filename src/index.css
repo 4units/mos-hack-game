@@ -95,6 +95,7 @@
 
   /* Color palette */
   --color-black: #000000;
+  --color-white: #ffffff;
   --color-violet: #1919ef;
   --color-mint: #58ffff;
   --color-raspberry: #dd41db;
@@ -180,8 +181,8 @@
   p,
   span,
   li {
-    font-size: var(--text-body-2);
-    line-height: var(--leading-body-2);
+    font-size: var(--text-body-1);
+    line-height: var(--leading-body-1);
     margin: 0;
   }
 
@@ -241,6 +242,13 @@
   }
 
   @media (max-width: 768px) {
+    p,
+    span,
+    li {
+      font-size: var(--text-body-1-mobile);
+      line-height: var(--leading-body-1-mobile);
+    }
+
     h1 {
       font-size: var(--text-h1-mobile);
       line-height: var(--leading-h1-mobile);
@@ -259,13 +267,6 @@
     h4 {
       font-size: var(--text-h4-mobile);
       line-height: var(--leading-h4-mobile);
-    }
-
-    p,
-    span,
-    li {
-      font-size: var(--text-body-2-mobile);
-      line-height: var(--leading-body-2-mobile);
     }
 
     .text-1 {

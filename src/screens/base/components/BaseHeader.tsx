@@ -34,7 +34,7 @@ const BaseHeader = ({ onBack, title }: BaseHeaderProps) => (
       <span
         className="
        
-        text-white absolute right-[13px] font-normal
+        text-white absolute right-[13px] font-normal text-1
       "
       >
         Назад

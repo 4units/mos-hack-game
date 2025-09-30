@@ -38,7 +38,7 @@ export const FaqScreen = ({ onBack }: FaqScreenProps) => {
   return (
     <main className="main-bg flex min-h-screen justify-center">
       <div className="flex w-full max-w-[25rem] flex-col gap-8 text-[var(--color-on-surface)]">
-        <BaseHeader onBack={onBack} />
+        <BaseHeader onBack={onBack} title="Популярные вопросы" />
 
         <ul className="flex flex-col divide-y divide-[var(--color-border)]">
           {faqItems.map(({ question, answer }, index) => {
