@@ -28,12 +28,17 @@ type Database struct {
 	PostgresURL string `yaml:"host" env:"DB_URL"`
 }
 
+type Router struct {
+	RequestTimeout time.Duration `yaml:"request_timeout" default:"5s" env:"REQUEST_TIMEOUT"`
+}
+
 type Config struct {
 	Host          Host          `yaml:"host"`
 	App           App           `yaml:"app"`
 	Authorization Authorization `yaml:"authorization"`
 	Postgres      Database      `yaml:"postgres"`
 	LineGame      LineGame      `yaml:"line_game"`
+	Router        Router        `yaml:"router"`
 }
 
 func LoadConfig(cfgPath string) (*Config, error) {

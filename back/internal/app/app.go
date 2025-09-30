@@ -92,7 +92,7 @@ func Run(cfg *config.Config) error {
 		rt, router.Deps{
 			UserHandler:     userHandler,
 			LineGameHandler: lineGameHandler,
-		},
+		}, cfg.Router,
 	)
 	if err != nil {
 		return err

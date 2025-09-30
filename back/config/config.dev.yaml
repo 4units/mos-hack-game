@@ -9,3 +9,5 @@ host:
   http_port: 8081
 line_game:
   levels_dir: "levels"
+router:
+  request_timeout: 5s

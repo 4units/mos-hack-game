@@ -2,6 +2,7 @@ package router
 
 import (
 	_ "github.com/4units/mos-hack-game-api/docs"
+	"github.com/4units/mos-hack-game/back/config"
 	"github.com/4units/mos-hack-game/back/internal/handler"
 	"github.com/4units/mos-hack-game/back/internal/middleware"
 	"github.com/gorilla/mux"
@@ -19,8 +20,9 @@ type Deps struct {
 	DocsWriter      DocsWriter
 }
 
-func Setup(rt *mux.Router, deps Deps) (http.Handler, error) {
+func Setup(rt *mux.Router, deps Deps, cfg config.Router) (http.Handler, error) {
 	rt.Use(middleware.HandlePanic)
+	rt.Use(middleware.HandleWithTimeOut(cfg.RequestTimeout))
 
 	rt.HandleFunc("/user", deps.UserHandler.GetUserInfo).Methods(http.MethodGet)
 
