@@ -10,9 +10,15 @@ host:
 game:
   line_game:
     levels_dir: "levels"
-  items_price:
-    hint_price: 50
-  balance:
-    hint_price: 200
+    rewards_conditions:
+      - max_time: 10s
+        reward:
+          soft_currency: 100
+      - max_time: 40s
+        reward:
+          soft_currency: 60
+      - max_time: 90s
+        reward:
+          soft_currency: 30
 router:
   request_timeout: 5s

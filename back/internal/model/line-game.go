@@ -32,6 +32,10 @@ type LineGameLevelCell struct {
 	Y int
 }
 
+type LineGameReward struct {
+	SoftCurrency int
+}
+
 func (level *LineGameLevel) GetLevelGroupCode() LineGameLevelGroupCode {
 	return GetLevelGroupID(level.FieldSize, len(level.Order), len(level.Blockers))
 }

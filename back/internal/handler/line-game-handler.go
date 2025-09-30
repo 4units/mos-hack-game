@@ -22,7 +22,7 @@ type LineGameCompleteProcessor interface {
 		userID uuid.UUID,
 		answer [][]int,
 		timeSinceStart time.Duration,
-	) error
+	) (model.LineGameReward, error)
 }
 
 type LineGameHintProvider interface {
@@ -104,6 +104,10 @@ type CompleteLevelRequest struct {
 	TimeSinceStart int     `json:"time_since_start" validate:"required""`
 }
 
+type CompleteLevelResponse struct {
+	SoftCurrency int `json:"soft_currency"`
+}
+
 func (l *LineGameHandler) CompleteLevel(w http.ResponseWriter, r *http.Request) {
 	userID, err := l.UserIDExtractor.GetVerifiedUserIDFromRequest(r)
 	if err != nil {
@@ -128,7 +132,7 @@ func (l *LineGameHandler) CompleteLevel(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 	}
-	err = l.LineGameCompleteProcessor.TryCompleteUserLevel(
+	reward, err := l.LineGameCompleteProcessor.TryCompleteUserLevel(
 		r.Context(), userID, req.Answer,
 		time.Duration(req.TimeSinceStart)*time.Second,
 	)
@@ -137,7 +141,13 @@ func (l *LineGameHandler) CompleteLevel(w http.ResponseWriter, r *http.Request) 
 		logs.Error("failed to complete level", err)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
+	resp := CompleteLevelResponse{
+		reward.SoftCurrency,
+	}
+	if err = json.NewEncoder(w).Encode(resp); err != nil {
+		http_errors.SendWrapped(w, err)
+		logs.Error("failed to encode response", err)
+	}
 }
 
 type GetLevelHintResponse struct {
