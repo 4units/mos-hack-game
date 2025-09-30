@@ -3,6 +3,8 @@ import { Stage, Layer, Rect, Text, Group, Shape } from 'react-konva';
 import type { KonvaEventObject } from 'konva/lib/Node';
 import type { Cell, LevelFormat } from './types';
 import platformImg from '../../../../assets/platform.png';
+import StarsCount from '../../../../components/StarsCount.tsx';
+import { BagIcon, LampIcon, LockIcon } from '../../../../components/icons';
 type Props = {
   level: LevelFormat;
   cellWidth?: number;
@@ -308,7 +310,7 @@ export const LinkNumber: React.FC<Props> = ({
         </Layer>
       )}
 
-      {win && (
+      {win ? (
         <div className="relative flex items-center justify-center flex-col gap-[20px] z-1 mt-10">
           <h3 className="text-[var(--color-raspberry)]">Вы прошли!</h3>
           <button
@@ -318,6 +320,19 @@ export const LinkNumber: React.FC<Props> = ({
           >
             <span className="text-[var(--color-raspberry)]">На следующую платформу</span>
           </button>
+        </div>
+      ) : (
+        <div className={'flex flex-row items-center justify-between mt-[40px]'}>
+          <button
+            className={
+              'flex items-center justify-center border-[1px] border-white rounded-[12px] h-[45px] w-[56px] p-0'
+            }
+            aria-label={'Подсказка'}
+          >
+            <BagIcon />
+          </button>
+          <StarsCount icon={<LockIcon />} label={'03'} ariaLabel={'Остановить время'} />
+          <StarsCount icon={<LampIcon />} label={'01'} ariaLabel={'Показать решение'} />
         </div>
       )}
       <div className="absolute flex w-full justify-center bottom-0 left-0 right-0 z-0">

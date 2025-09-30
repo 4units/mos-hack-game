@@ -24,12 +24,16 @@ export const GameScreen = ({
 
   return (
     <>
-      <main className="main-bg flex min-h-screen items-center justify-center bg-[var(--color-surface)]">
-        <div className="flex w-full max-w-[25rem] flex-col gap-7 text-[var(--color-on-surface)]">
+      <main className="main-bg flex min-h-screen bg-[var(--color-surface)]">
+        <div className="flex w-full max-w-[25rem] flex-col gap-7 justify-between text-[var(--color-on-surface)]">
           <header className="flex items-center justify-between gap-4">
             <div className="flex items-center justify-center gap-4" aria-label="Статус игры">
               <PlatformNumber number={2} />
-              <StarsCount number={score} onClick={() => setIsStarsOpen(true)} />
+              <StarsCount
+                number={score}
+                onClick={() => setIsStarsOpen(true)}
+                ariaLabel="Количество звёзд"
+              />
             </div>
 
             <div className="flex items-center gap-4">

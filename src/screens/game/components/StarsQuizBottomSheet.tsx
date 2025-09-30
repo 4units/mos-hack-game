@@ -81,7 +81,7 @@ const StarsQuizBottomSheet = ({
           <h2 id={headingId} className="text-[var(--color-black)]">
             Ваши звёзды
           </h2>
-          <StarsCount number={score} color={'violet'} />
+          <StarsCount number={score} color={'violet'} ariaLabel="Количество звёзд" />
         </div>
 
         <IconButton variant="ghost" aria-label="Закрыть" onClick={onClose} className={'ml-auto'}>

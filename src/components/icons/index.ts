@@ -6,4 +6,8 @@ export { default as QuestionIcon } from './QuestionIcon';
 export { default as StarIcon } from './StarIcon';
 export { default as CupIcon } from './CupIcon.tsx';
 export { default as WinIcon } from './WinIcon.tsx';
+export { default as ClockIcon } from './ClockIcon.tsx';
+export { default as LockIcon } from './LockIcon.tsx';
+export { default as LampIcon } from './LampIcon.tsx';
+export { default as BagIcon } from './BagIcon.tsx';
 export type { Direction, IconProps } from './types';
