@@ -44,12 +44,11 @@ func NewLineGameHandler(deps LineGameHandlerDeps) *LineGameHandler {
 }
 
 type GetUserLevelResponse struct {
-	FieldSize int     `json:"field_size"`
-	StartCell Cell    `json:"start_cell"`
-	EndCell   Cell    `json:"end_cell"`
-	Order     []Cell  `json:"order"`
-	Blockers  []Cell  `json:"blockers"`
-	Answer    [][]int `json:"answer"`
+	FieldSize int    `json:"field_size"`
+	StartCell Cell   `json:"start_cell"`
+	EndCell   Cell   `json:"end_cell"`
+	Order     []Cell `json:"order"`
+	Blockers  []Cell `json:"blockers"`
 }
 
 type Cell struct {
@@ -82,19 +81,12 @@ func (l *LineGameHandler) GetUserLevel(w http.ResponseWriter, r *http.Request) {
 		},
 		Order:    make([]Cell, 0, len(level.Order)),
 		Blockers: make([]Cell, 0, len(level.Blockers)),
-		Answer:   make([][]int, 0, len(level.Answer)),
 	}
 	for _, cell := range level.Order {
 		resp.Order = append(resp.Order, Cell{X: cell.X, Y: cell.Y})
 	}
 	for _, cell := range level.Blockers {
 		resp.Blockers = append(resp.Blockers, Cell{X: cell.X, Y: cell.Y})
-	}
-	for i, row := range level.Answer {
-		resp.Answer = append(resp.Answer, make([]int, 0, len(row)))
-		for _, cell := range row {
-			resp.Answer[i] = append(resp.Answer[i], cell)
-		}
 	}
 	if err = json.NewEncoder(w).Encode(resp); err != nil {
 		http_errors.NewInternal("failed to encode level")
