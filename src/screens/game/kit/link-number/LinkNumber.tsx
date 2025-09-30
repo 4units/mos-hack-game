@@ -308,7 +308,7 @@ export const LinkNumber: React.FC<Props> = ({
         </Layer>
       )}
 
-      {!win && (
+      {win && (
         <div className="relative flex items-center justify-center flex-col gap-[20px] z-1 mt-10">
           <h3 className="text-[var(--color-raspberry)]">Вы прошли!</h3>
           <button

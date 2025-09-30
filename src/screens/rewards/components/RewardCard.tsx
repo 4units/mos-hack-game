@@ -14,7 +14,12 @@ const RewardCard = ({ title, reward, unlocked = false }: RewardCardProps) => (
     }}
     className={`relative flex flex-col justify-between items-center rounded-[20px] h-[140px] bg-gradient-to-tr from-[#58FFFF] to-[#1919EF] text-white`}
   >
-    <img src={achivGazik} alt={title} className={'w-[62px] mt-[-10px]'} />
+    <img
+      draggable={false}
+      src={achivGazik}
+      alt={title}
+      className={'w-[62px] mt-[-10px] select-none pointer-events-none'}
+    />
     <p className="px-4 font-semibold text-[10px] text-center leading-tight">{title}</p>
 
     <div className={`pb-[5px]`}>
