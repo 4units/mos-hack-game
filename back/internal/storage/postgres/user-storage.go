@@ -6,11 +6,17 @@ import (
 	"errors"
 	"fmt"
 	"github.com/4units/mos-hack-game/back/internal/model"
+	http_errors "github.com/4units/mos-hack-game/back/pkg/http-errors"
 	"github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"net/http"
 	"strings"
+)
+
+var (
+	ErrUserAlreadyExists = http_errors.NewSame("user already exists", http.StatusConflict)
 )
 
 const (
@@ -180,7 +186,7 @@ func (u *UserStorage) CreateUserByEmail(ctx context.Context, email string, hash 
 	if _, err = tx.Exec(ctx, q2, a2...); err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
-			return fmt.Errorf("email already exists: %w", err)
+			return ErrUserAlreadyExists
 		}
 		return fmt.Errorf("exec email_passes insert: %w", err)
 	}
