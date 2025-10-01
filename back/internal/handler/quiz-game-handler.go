@@ -101,6 +101,7 @@ type AnswerQuizResponse struct {
 // @Tags         quiz
 // @Produce      json
 // @Accept       json
+// @Security     BearerAuth
 // @Param        body  body  AnswerQuizRequest  true  "Complete quiz data"
 // @Success      200  {object}  AnswerQuizResponse
 // @Failure      400  {object}  http_errors.ResponseError
@@ -150,6 +151,7 @@ type AddQuizRequest struct {
 // @Summary      Add quiz
 // @Tags         quiz
 // @Accept       json
+// @Security     BearerAuth
 // @Param        body  body  AddQuizRequest  true  "Add quiz data"
 // @Success      201
 // @Failure      400  {object}  http_errors.ResponseError
@@ -195,6 +197,7 @@ type UpdateQuizRequest struct {
 // @Summary      Update quiz
 // @Tags         quiz
 // @Accept       json
+// @Security     BearerAuth
 // @Param        body  body  UpdateQuizRequest  true  "Update quiz data"
 // @Success      201
 // @Failure      400  {object}  http_errors.ResponseError
