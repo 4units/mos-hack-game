@@ -13,6 +13,7 @@ import (
 
 var (
 	ErrNotCorrectAnswer = http_errors.NewSame("not correct quiz answer provided", http.StatusNotAcceptable)
+	ErrNoQuizExists     = http_errors.NewSame("no one quiz exists", http.StatusNotFound)
 )
 
 type QuizStorage interface {
@@ -71,6 +72,9 @@ func (q *QuizUsecase) GetRandomQuiz(ctx context.Context) (model.Quiz, error) {
 	quizList, err := q.QuizStorage.GetAllQuiz(ctx)
 	if err != nil {
 		return model.Quiz{}, err
+	}
+	if quizList == nil || len(quizList) == 0 {
+		return model.Quiz{}, ErrNoQuizExists
 	}
 	randNum := rand.Intn(len(quizList))
 	return quizList[randNum], nil
