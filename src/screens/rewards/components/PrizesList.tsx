@@ -8,7 +8,7 @@ const PrizesList = ({ items }: PrizesListProps) => (
     {items.map((p) => (
       <div
         key={p.id}
-        className="flex flex-row rounded-[12px] p-3 bg-gradient-to-r from-[#DD41DB] to-[#FF82BE] items-center gap-2 h-[80px]"
+        className="flex flex-row rounded-[12px] p-3 bg-gradient-to-r from-[#DD41DB] to-[#FF82BE] items-center gap-2 min-h-[80px]"
       >
         <img
           draggable={false}
