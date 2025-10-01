@@ -4,6 +4,7 @@ export const routes = {
   faq: '/faq',
   base: '/base',
   linkNumber: '/game/link-number',
+  linkNumberDemo: '/game/link-number/demo',
   rewards: '/rewards',
 } as const;
 
