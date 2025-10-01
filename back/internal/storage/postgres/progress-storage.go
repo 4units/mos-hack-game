@@ -14,48 +14,21 @@ import (
 
 type ProgressStorage struct {
 	pool *pgxpool.Pool
+	psql squirrel.StatementBuilderType
 }
 
-func (p ProgressStorage) AddUserLineGameLevel(
-	ctx context.Context,
-	id uuid.UUID,
-	groupCode model.LineGameLevelGroupCode,
-	levelNum int,
-) error {
-	psql := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
-
-	q, args, err := psql.
-		Insert("line_game_progress").
-		Columns("user_id", "level_group", "level_id").
-		Values(id, string(groupCode), levelNum).
-		ToSql()
-	if err != nil {
-		return fmt.Errorf("build insert: %w", err)
+func NewProgressStorage(pool *pgxpool.Pool) *ProgressStorage {
+	return &ProgressStorage{
+		pool: pool,
+		psql: squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar),
 	}
-
-	if _, err = p.pool.Exec(ctx, q, args...); err != nil {
-		// Разруливаем типовые коды PG
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) {
-			switch pgErr.Code {
-			case "23505":
-				return fmt.Errorf("line_game_progress already exists for user %s: %w", id, err)
-			case "23503":
-				return fmt.Errorf("fk violation for user %s (users.user_id): %w", id, err)
-			}
-		}
-		return fmt.Errorf("exec insert: %w", err)
-	}
-	return nil
 }
 
-func (p ProgressStorage) GetUserLineGameLevel(
+func (p *ProgressStorage) GetUserLineGameLevel(
 	ctx context.Context,
 	userID uuid.UUID,
 ) (groupID model.LineGameLevelGroupCode, levelNum int, err error) {
-	psql := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
-
-	q, args, err := psql.
+	q, args, err := p.psql.
 		Select("level_group", "level_id").
 		From("line_game_progress").
 		Where(squirrel.Eq{"user_id": userID}).
@@ -75,22 +48,46 @@ func (p ProgressStorage) GetUserLineGameLevel(
 	return model.LineGameLevelGroupCode(grp), levelNum, nil
 }
 
-func (p ProgressStorage) UpdateUserLineGameLevel(
+func (p *ProgressStorage) AddUserLineGameLevel(
+	ctx context.Context,
+	id uuid.UUID,
+	groupCode model.LineGameLevelGroupCode,
+	levelNum int,
+) error {
+	q, args, err := p.psql.
+		Insert("line_game_progress").
+		Columns("user_id", "level_group", "level_id").
+		Values(id, string(groupCode), levelNum).
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("build insert: %w", err)
+	}
+
+	if _, err = p.pool.Exec(ctx, q, args...); err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			switch pgErr.Code {
+			case "23505":
+				return fmt.Errorf("line_game_progress already exists for user %s: %w", id, err)
+			case "23503":
+				return fmt.Errorf("fk violation for user %s (users.user_id): %w", id, err)
+			}
+		}
+		return fmt.Errorf("exec insert: %w", err)
+	}
+	return nil
+}
+
+func (p *ProgressStorage) UpdateUserLineGameLevel(
 	ctx context.Context,
 	userID uuid.UUID,
 	level model.LineGameLevelGroupCode,
 	levelNum int,
 ) error {
-	psql := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
-
-	q, args, err := psql.
+	q, args, err := p.psql.
 		Update("line_game_progress").
-		SetMap(
-			map[string]any{
-				"level_group": string(level),
-				"level_id":    levelNum,
-			},
-		).
+		Set("level_group", string(level)).
+		Set("level_id", levelNum).
 		Where(squirrel.Eq{"user_id": userID}).
 		ToSql()
 	if err != nil {
@@ -105,10 +102,4 @@ func (p ProgressStorage) UpdateUserLineGameLevel(
 		return model.ErrUserHasNotLineGameProgress
 	}
 	return nil
-}
-
-func NewProgressStorage(pool *pgxpool.Pool) *ProgressStorage {
-	return &ProgressStorage{
-		pool: pool,
-	}
 }

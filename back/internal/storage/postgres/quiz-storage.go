@@ -20,16 +20,18 @@ var (
 
 type QuizStorage struct {
 	pool *pgxpool.Pool
+	psql squirrel.StatementBuilderType
 }
 
 func NewQuizStorage(pool *pgxpool.Pool) *QuizStorage {
-	return &QuizStorage{pool: pool}
+	return &QuizStorage{
+		pool: pool,
+		psql: squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar),
+	}
 }
 
-func (q QuizStorage) GetAllQuiz(ctx context.Context) ([]model.Quiz, error) {
-	psql := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
-
-	sql, args, err := psql.
+func (q *QuizStorage) GetAllQuiz(ctx context.Context) ([]model.Quiz, error) {
+	sql, args, err := q.psql.
 		Select("quiz_id", "question", "answers", "correct_answer", "info_link", "answer_description").
 		From("quiz").
 		OrderBy("quiz_id").
@@ -67,13 +69,11 @@ func (q QuizStorage) GetAllQuiz(ctx context.Context) ([]model.Quiz, error) {
 	return quizList, nil
 }
 
-func (q QuizStorage) GetQuizByID(ctx context.Context, id uuid.UUID) (model.Quiz, error) {
-	psql := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
-
-	sql, args, err := psql.
+func (q *QuizStorage) GetQuizByID(ctx context.Context, quizID uuid.UUID) (model.Quiz, error) {
+	sql, args, err := q.psql.
 		Select("quiz_id", "question", "answers", "correct_answer", "info_link", "answer_description").
 		From("quiz").
-		Where(squirrel.Eq{"quiz_id": id}).
+		Where(squirrel.Eq{"quiz_id": quizID}).
 		ToSql()
 	if err != nil {
 		return model.Quiz{}, fmt.Errorf("build query: %w", err)
@@ -98,7 +98,7 @@ func (q QuizStorage) GetQuizByID(ctx context.Context, id uuid.UUID) (model.Quiz,
 	return quiz, nil
 }
 
-func (q QuizStorage) AddQuiz(
+func (q *QuizStorage) AddQuiz(
 	ctx context.Context,
 	question string,
 	answers []string,
@@ -106,14 +106,12 @@ func (q QuizStorage) AddQuiz(
 	linkInfo string,
 	answerDescription string,
 ) error {
-	psql := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
-
 	ansJSON, err := json.Marshal(answers)
 	if err != nil {
 		return fmt.Errorf("marshal answers: %w", err)
 	}
 
-	sql, args, err := psql.
+	sql, args, err := q.psql.
 		Insert("quiz").
 		Columns("question", "correct_answer", "answers", "info_link", "answer_description").
 		Values(question, correctAnswer, ansJSON, linkInfo, answerDescription).
@@ -127,7 +125,7 @@ func (q QuizStorage) AddQuiz(
 	}
 	return nil
 }
-func (q QuizStorage) UpdateQuiz(
+func (q *QuizStorage) UpdateQuiz(
 	ctx context.Context,
 	quizID uuid.UUID,
 	question string,
@@ -136,20 +134,18 @@ func (q QuizStorage) UpdateQuiz(
 	linkInfo string,
 	answerDescription string,
 ) error {
-	psql := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
-
-	ansJSON, err := json.Marshal(answers)
+	json, err := json.Marshal(answers)
 	if err != nil {
 		return fmt.Errorf("marshal answers: %w", err)
 	}
 
-	sql, args, err := psql.
+	sql, args, err := q.psql.
 		Update("quiz").
 		SetMap(
 			map[string]any{
 				"question":           question,
 				"correct_answer":     correctAnswer,
-				"answers":            ansJSON,
+				"answers":            json,
 				"info_link":          linkInfo,
 				"answer_description": answerDescription,
 			},

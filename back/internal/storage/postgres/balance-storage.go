@@ -5,27 +5,33 @@ import (
 	"errors"
 	"fmt"
 	"github.com/4units/mos-hack-game/back/internal/model"
+	http_errors "github.com/4units/mos-hack-game/back/pkg/http-errors"
 	"github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"net/http"
+)
+
+var (
+	ErrUserBalanceAlreadyExists = http_errors.NewSame("user balance already exists", http.StatusConflict)
 )
 
 type BalanceStorage struct {
 	pool *pgxpool.Pool
+	psql squirrel.StatementBuilderType
 }
 
 func NewBalanceStorage(pool *pgxpool.Pool) *BalanceStorage {
 	return &BalanceStorage{
 		pool: pool,
+		psql: squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar),
 	}
 }
 
 func (b *BalanceStorage) GetSoftCurrency(ctx context.Context, userID uuid.UUID) (int, error) {
-	psql := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
-
-	q, args, err := psql.
+	q, args, err := b.psql.
 		Select("soft_currency").
 		From("user_balance").
 		Where(squirrel.Eq{"user_id": userID}).
@@ -45,9 +51,7 @@ func (b *BalanceStorage) GetSoftCurrency(ctx context.Context, userID uuid.UUID) 
 }
 
 func (b *BalanceStorage) UpdateSoftCurrency(ctx context.Context, userID uuid.UUID, count int) error {
-	psql := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
-
-	q, args, err := psql.
+	q, args, err := b.psql.
 		Update("user_balance").
 		Set("soft_currency", count).
 		Where(squirrel.Eq{"user_id": userID}).
@@ -67,9 +71,7 @@ func (b *BalanceStorage) UpdateSoftCurrency(ctx context.Context, userID uuid.UUI
 }
 
 func (b *BalanceStorage) GetUserBalance(ctx context.Context, userID uuid.UUID) (model.UserBalance, error) {
-	psql := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
-
-	q, args, err := psql.
+	q, args, err := b.psql.
 		Select("soft_currency").
 		From("user_balance").
 		Where(squirrel.Eq{"user_id": userID}).
@@ -89,9 +91,7 @@ func (b *BalanceStorage) GetUserBalance(ctx context.Context, userID uuid.UUID) (
 }
 
 func (b *BalanceStorage) CreateUserBalance(ctx context.Context, userID uuid.UUID, balance model.UserBalance) error {
-	psql := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
-
-	q, args, err := psql.
+	q, args, err := b.psql.
 		Insert("user_balance").
 		Columns("user_id", "soft_currency").
 		Values(userID, balance.SoftCurrency).
@@ -103,7 +103,7 @@ func (b *BalanceStorage) CreateUserBalance(ctx context.Context, userID uuid.UUID
 	if _, err = b.pool.Exec(ctx, q, args...); err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
-			return fmt.Errorf("balance already exists for user %s: %w", userID, err)
+			return fmt.Errorf("balance already exists for user %s: %w", userID, ErrUserBalanceAlreadyExists)
 		}
 		return fmt.Errorf("exec insert: %w", err)
 	}
