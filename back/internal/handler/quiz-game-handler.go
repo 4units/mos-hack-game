@@ -60,6 +60,13 @@ type GetQuizResponse struct {
 	AnswerDescription string    `json:"answer_description"`
 }
 
+// GetQuiz godoc
+// @Summary      Get quiz
+// @Tags         quiz
+// @Produce      json
+// @Success      200  {object}  GetQuizResponse
+// @Failure      500  {object}  http_errors.ResponseError
+// @Router       /game/quiz [get]
 func (q QuizHandler) GetQuiz(w http.ResponseWriter, r *http.Request) {
 	quiz, err := q.QuizProvider.GetRandomQuiz(r.Context())
 	if err != nil {
@@ -89,6 +96,17 @@ type AnswerQuizResponse struct {
 	SoftCurrency int `json:"soft_currency"`
 }
 
+// AnswerQuiz godoc
+// @Summary      Complete current user quiz
+// @Tags         quiz
+// @Produce      json
+// @Accept       json
+// @Param        body  body  AnswerQuizRequest  true  "Complete quiz data"
+// @Success      200  {object}  AnswerQuizResponse
+// @Failure      400  {object}  http_errors.ResponseError
+// @Failure      401  {object}  http_errors.ResponseError
+// @Failure      500  {object}  http_errors.ResponseError
+// @Router       /game/quiz/answer [post]
 func (q QuizHandler) AnswerQuiz(w http.ResponseWriter, r *http.Request) {
 	userID, err := q.UserIDExtractor.GetVerifiedUserIDFromRequest(r)
 	if err != nil {
@@ -128,6 +146,16 @@ type AddQuizRequest struct {
 	AnswerDescription string   `json:"answer_description"`
 }
 
+// AddQuiz godoc
+// @Summary      Add quiz
+// @Tags         quiz
+// @Accept       json
+// @Param        body  body  AddQuizRequest  true  "Add quiz data"
+// @Success      201
+// @Failure      400  {object}  http_errors.ResponseError
+// @Failure      401  {object}  http_errors.ResponseError
+// @Failure      500  {object}  http_errors.ResponseError
+// @Router       /game/quiz [post]
 func (q QuizHandler) AddQuiz(w http.ResponseWriter, r *http.Request) {
 	userID, err := q.UserIDExtractor.GetVerifiedUserIDFromRequest(r)
 	if err != nil {
@@ -151,6 +179,7 @@ func (q QuizHandler) AddQuiz(w http.ResponseWriter, r *http.Request) {
 		logs.Error("failed to add quiz", err)
 		return
 	}
+	w.WriteHeader(http.StatusCreated)
 }
 
 type UpdateQuizRequest struct {
@@ -162,6 +191,16 @@ type UpdateQuizRequest struct {
 	AnswerDescription string    `json:"answer_description"`
 }
 
+// UpdateQuiz godoc
+// @Summary      Update quiz
+// @Tags         quiz
+// @Accept       json
+// @Param        body  body  UpdateQuizRequest  true  "Update quiz data"
+// @Success      201
+// @Failure      400  {object}  http_errors.ResponseError
+// @Failure      401  {object}  http_errors.ResponseError
+// @Failure      500  {object}  http_errors.ResponseError
+// @Router       /game/quiz [put]
 func (q QuizHandler) UpdateQuiz(w http.ResponseWriter, r *http.Request) {
 	userID, err := q.UserIDExtractor.GetVerifiedUserIDFromRequest(r)
 	if err != nil {
@@ -185,4 +224,5 @@ func (q QuizHandler) UpdateQuiz(w http.ResponseWriter, r *http.Request) {
 		logs.Error("failed to add quiz", err)
 		return
 	}
+	w.WriteHeader(http.StatusCreated)
 }

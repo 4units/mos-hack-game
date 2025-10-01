@@ -15,9 +15,8 @@ import (
 )
 
 var (
-	ErrTokenNotFound = http_errors.New(
-		"token not found inside the request arguments or headers",
-		"the request does not contain header Authorization or it is empty",
+	ErrTokenNotFound = http_errors.NewSame(
+		"token not found",
 		http.StatusBadRequest,
 	)
 	ErrSignatureInvalid = http_errors.NewSame(

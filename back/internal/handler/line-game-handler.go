@@ -61,6 +61,16 @@ type Cell struct {
 	Y int `json:"y"`
 }
 
+// GetUserLevel godoc
+// @Summary      Get current user level
+// @Tags         line-game
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200  {object}  GetUserLevelResponse
+// @Failure      400  {object}  http_errors.ResponseError
+// @Failure      401  {object}  http_errors.ResponseError
+// @Failure      500  {object}  http_errors.ResponseError
+// @Router       /game/line/level [get]
 func (l *LineGameHandler) GetUserLevel(w http.ResponseWriter, r *http.Request) {
 	userID, err := l.UserIDExtractor.GetVerifiedUserIDFromRequest(r)
 	if err != nil {
@@ -108,6 +118,17 @@ type CompleteLevelResponse struct {
 	SoftCurrency int `json:"soft_currency"`
 }
 
+// CompleteLevel godoc
+// @Summary      Complete current user level
+// @Tags         line-game
+// @Produce      json
+// @Accept       json
+// @Param        body  body  CompleteLevelRequest  true  "Complete level data"
+// @Success      200  {object}  CompleteLevelResponse
+// @Failure      400  {object}  http_errors.ResponseError
+// @Failure      401  {object}  http_errors.ResponseError
+// @Failure      500  {object}  http_errors.ResponseError
+// @Router       /game/line/level [post]
 func (l *LineGameHandler) CompleteLevel(w http.ResponseWriter, r *http.Request) {
 	userID, err := l.UserIDExtractor.GetVerifiedUserIDFromRequest(r)
 	if err != nil {
@@ -154,6 +175,16 @@ type GetLevelHintResponse struct {
 	Answer [][]int `json:"answer" validate:"required"`
 }
 
+// GetLevelHint godoc
+// @Summary      Get current user level's hint
+// @Tags         line-game
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200  {object}  GetLevelHintResponse
+// @Failure      400  {object}  http_errors.ResponseError
+// @Failure      401  {object}  http_errors.ResponseError
+// @Failure      500  {object}  http_errors.ResponseError
+// @Router       /game/line/hint [get]
 func (l *LineGameHandler) GetLevelHint(w http.ResponseWriter, r *http.Request) {
 	userID, err := l.UserIDExtractor.GetVerifiedUserIDFromRequest(r)
 	if err != nil {
