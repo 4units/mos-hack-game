@@ -28,6 +28,14 @@ var (
 		"token is expired",
 		http.StatusUnauthorized,
 	)
+	ErrTokenVerification = http_errors.New(
+		"failed to verify token", "token signature is invalid",
+		http.StatusUnauthorized,
+	)
+	ErrTokenDecryption = http_errors.New(
+		"failed to decrypt token", "token signature is invalid",
+		http.StatusUnauthorized,
+	)
 	ErrParseClaims = errors.New("failed to parse Claims")
 )
 
@@ -86,6 +94,10 @@ func (u *TokenUsecase) GetVerifiedUserIDFromRequest(r *http.Request) (uuid.UUID,
 			return uuid.Nil, ErrSignatureInvalid
 		case errors.Is(err, jwt.ErrTokenExpired):
 			return uuid.Nil, ErrTokenExpired
+		case errors.Is(err, rsa.ErrVerification):
+			return uuid.Nil, ErrTokenVerification
+		case errors.Is(err, rsa.ErrDecryption):
+			return uuid.Nil, ErrTokenDecryption
 		default:
 			return uuid.Nil, err
 		}
