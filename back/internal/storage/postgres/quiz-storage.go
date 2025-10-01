@@ -87,7 +87,7 @@ func (q QuizStorage) GetQuizByID(ctx context.Context, id uuid.UUID) (model.Quiz,
 		&quiz.ID, &quiz.Question, &rawAns, &quiz.CorrectAnswer, &quiz.InfoLink, &quiz.AnswerDescription,
 	); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return model.Quiz{}, pgx.ErrNoRows
+			return model.Quiz{}, ErrQuizDoesNotExist
 		}
 		return model.Quiz{}, fmt.Errorf("exec query: %w", err)
 	}
