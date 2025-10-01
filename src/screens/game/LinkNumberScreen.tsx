@@ -73,7 +73,7 @@ const LinkNumberScreen = ({
       >
         {/* Tips layout container */}
         <div
-          className="absolute inset-0 mx-auto w-full max-w-[25rem]"
+          className="absolute inset-0 mx-auto w-full max-w-[25rem] pointer-events-none"
           style={{ position: 'absolute' }}
         >
           <Bubble style={{ top: 16, right: 110, maxWidth: 185 }} arrow="right">
