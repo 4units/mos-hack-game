@@ -16,11 +16,6 @@ var (
 	ErrNotEnoughSoftCurrency = http_errors.NewSame("not enough soft currency", http.StatusForbidden)
 )
 
-type UserBalanceStorage interface {
-	GetSoftCurrency(ctx context.Context, userID uuid.UUID) (int, error)
-	UpdateSoftCurrency(ctx context.Context, userID uuid.UUID, count int) error
-}
-
 type LineLevelStorage interface {
 	GetStartGroupCode(ctx context.Context) (model.LineGameLevelGroupCode, error)
 	GetLevel(ctx context.Context, groupCode model.LineGameLevelGroupCode, levelNum int) (model.LineGameLevel, error)
@@ -52,7 +47,7 @@ type LineLevelProgressStorage interface {
 type LineGameUsecaseDeps struct {
 	LineGameLevelStorage    LineLevelStorage
 	LineGameProgressStorage LineLevelProgressStorage
-	UserBalanceStorage      UserBalanceStorage
+	BalanceUsecase          *BalanceUsecase
 }
 type LineGameUsecase struct {
 	LineGameUsecaseDeps
@@ -182,11 +177,11 @@ Loop:
 			break
 		}
 	}
-	balance, err := l.UserBalanceStorage.GetSoftCurrency(ctx, userID)
+	balance, err := l.BalanceUsecase.GetSoftCurrency(ctx, userID)
 	if err != nil {
 		return model.LineGameReward{}, fmt.Errorf("failed to get soft currency balance: %w", err)
 	}
-	if err = l.UserBalanceStorage.UpdateSoftCurrency(ctx, userID, balance+rewardCfg.SoftCurrency); err != nil {
+	if err = l.BalanceUsecase.AddSoftCurrency(ctx, userID, balance+rewardCfg.SoftCurrency); err != nil {
 		return model.LineGameReward{}, fmt.Errorf("failed to update soft currency balance: %w", err)
 	}
 	return model.LineGameReward{
@@ -195,7 +190,7 @@ Loop:
 }
 
 func (l *LineGameUsecase) GetLevelHint(ctx context.Context, userID uuid.UUID) ([][]int, error) {
-	balance, err := l.UserBalanceStorage.GetSoftCurrency(ctx, userID)
+	balance, err := l.BalanceUsecase.GetSoftCurrency(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get soft currency balance: %w", err)
 	}
@@ -208,7 +203,7 @@ func (l *LineGameUsecase) GetLevelHint(ctx context.Context, userID uuid.UUID) ([
 	}
 	newBalance := balance - l.pricesCfg.LineGameHintPrice
 
-	if err = l.UserBalanceStorage.UpdateSoftCurrency(ctx, userID, newBalance); err != nil {
+	if err = l.BalanceUsecase.AddSoftCurrency(ctx, userID, newBalance); err != nil {
 		return nil, fmt.Errorf("failed to update soft currency balance: %w", err)
 	}
 	return level.Answer, nil

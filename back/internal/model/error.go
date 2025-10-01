@@ -29,5 +29,6 @@ var (
 		"answers out of borders", "out of borders", http.StatusBadRequest,
 	)
 
-	ErrBalanceNotExists = errors.New("balance does not exist")
+	ErrBalanceNotExists    = errors.New("balance does not exist")
+	ErrUserRoleHasNoAccess = http_errors.NewSame("has no access", http.StatusForbidden)
 )

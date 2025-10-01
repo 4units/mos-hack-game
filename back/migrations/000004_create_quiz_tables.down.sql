@@ -1,0 +1,3 @@
+DROP TABLE IS EXISTS quiz;
+
+DELETE FROM roles WHERE role_id=2;

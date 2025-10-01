@@ -10,6 +10,13 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"strings"
+)
+
+const (
+	RoleAdmin      = "admin"
+	RoleUser       = "user"
+	RoleQuizWriter = "quiz_writer"
 )
 
 type UserStorage struct {
@@ -18,6 +25,50 @@ type UserStorage struct {
 
 func NewUserStorage(pool *pgxpool.Pool) *UserStorage {
 	return &UserStorage{pool: pool}
+}
+
+func (u *UserStorage) GetUserRolesByID(ctx context.Context, userID uuid.UUID) ([]model.Role, error) {
+	psql := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
+
+	sql, args, err := psql.
+		Select("r.name").
+		From("granted_roles gr").
+		Join("roles r ON r.role_id = gr.role_id").
+		Where(squirrel.Eq{"gr.user_id": userID}).
+		OrderBy("r.role_id").
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("build query: %w", err)
+	}
+
+	rows, err := u.pool.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, fmt.Errorf("exec query: %w", err)
+	}
+	defer rows.Close()
+
+	var roles []model.Role
+	for rows.Next() {
+		var dbName string
+		if err = rows.Scan(&dbName); err != nil {
+			return nil, fmt.Errorf("scan row: %w", err)
+		}
+		switch strings.ToLower(dbName) {
+		case RoleAdmin:
+			roles = append(roles, model.RoleAdmin)
+		case RoleQuizWriter:
+			roles = append(roles, model.RoleQuizWriter)
+		case RoleUser:
+			roles = append(roles, model.RoleUser)
+		default:
+		}
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows err: %w", err)
+	}
+
+	return roles, nil
 }
 
 func (u *UserStorage) GetUserByID(ctx context.Context, id uuid.UUID) (*model.User, error) {
@@ -73,9 +124,6 @@ func (u *UserStorage) GetIDAndPassHash(ctx context.Context, email string) (uuid.
 }
 
 func (u *UserStorage) CreateAnonymouseUser(ctx context.Context) (uuid.UUID, error) {
-	return u.сreateUser(ctx)
-}
-func (u *UserStorage) сreateUser(ctx context.Context) (uuid.UUID, error) {
 	psql := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
 
 	query, args, err := psql.

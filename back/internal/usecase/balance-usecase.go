@@ -12,6 +12,8 @@ import (
 type BalanceStorage interface {
 	GetUserBalance(ctx context.Context, userID uuid.UUID) (model.UserBalance, error)
 	CreateUserBalance(ctx context.Context, userID uuid.UUID, balance model.UserBalance) error
+	GetSoftCurrency(ctx context.Context, userID uuid.UUID) (int, error)
+	UpdateSoftCurrency(ctx context.Context, userID uuid.UUID, count int) error
 }
 
 type BalanceUsecaseDeps struct {
@@ -39,6 +41,26 @@ func (b *BalanceUsecase) GetUserBalance(ctx context.Context, userID uuid.UUID) (
 		if err = b.BalanceStorage.CreateUserBalance(ctx, userID, balance); err != nil {
 			return model.UserBalance{}, fmt.Errorf("failed to update balance: %w", err)
 		}
+	}
+	return balance, nil
+}
+
+func (b *BalanceUsecase) AddSoftCurrency(ctx context.Context, userID uuid.UUID, count int) error {
+	balance, err := b.GetUserBalance(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("failed to get balance: %w", err)
+	}
+	balance.SoftCurrency += count
+	if err = b.BalanceStorage.UpdateSoftCurrency(ctx, userID, balance.SoftCurrency); err != nil {
+		return fmt.Errorf("failed to update soft currency balance: %w", err)
+	}
+	return nil
+}
+
+func (b *BalanceUsecase) GetSoftCurrency(ctx context.Context, userID uuid.UUID) (int, error) {
+	balance, err := b.BalanceStorage.GetSoftCurrency(ctx, userID)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get soft currency balance: %w", err)
 	}
 	return balance, nil
 }
