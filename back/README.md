@@ -41,4 +41,4 @@ RUN_MIGRATIONS=true docker compose --env-file .env up -d --build
 
 Для авторизации можно воспользоваться методом http://localhost:8081/user/token/anonymous, скопировав полученный token в
 поле ввода Authorize, введя дополнительно слово _Bearer_ в начале. В итоге должно быть примерно следующее значение в
-поле Value: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` 
+поле Value: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
