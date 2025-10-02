@@ -1,6 +1,5 @@
 import { create } from 'zustand';
-import Cookies from 'js-cookie';
-import { TOKEN_COOKIE } from '../config';
+import { AUTH_TOKEN_KEY } from '../config';
 
 type JwtPayload = {
   exp?: number;
@@ -50,22 +49,54 @@ type AuthState = {
   clear: () => void;
 };
 
-const initialToken = Cookies.get(TOKEN_COOKIE) ?? null;
+let initialToken: string | null = null;
+try {
+  initialToken = typeof window !== 'undefined' ? window.localStorage.getItem(AUTH_TOKEN_KEY) : null;
+} catch {
+  initialToken = null;
+}
+console.log('[authStore] initial token', initialToken);
 const initialExpiresAt = getTokenExpiryMs(initialToken);
 
 let expiryTimer: number | null = null;
+const MAX_TIMEOUT = 2_147_483_647; // ~24.8 days, JS timer limit
 
 const scheduleExpiry = (expMs: number | null, clearFn: () => void) => {
   if (expiryTimer) {
     clearTimeout(expiryTimer);
     expiryTimer = null;
+    console.log('[authStore] cleared previous expiry timer');
   }
-  if (expMs && expMs > Date.now()) {
-    const delay = Math.max(0, expMs - Date.now());
-    expiryTimer = window.setTimeout(() => {
+
+  if (!expMs) return;
+
+  const now = Date.now();
+  if (expMs <= now) {
+    console.log('[authStore] token already expired');
+    clearFn();
+    return;
+  }
+
+  const remaining = expMs - now;
+  const delay = Math.min(remaining, MAX_TIMEOUT);
+  console.log('[authStore] scheduling expiry chunk in ms', delay, 'remaining', remaining);
+
+  expiryTimer = window.setTimeout(() => {
+    expiryTimer = null;
+    const nextRemaining = expMs - Date.now();
+    console.log('[authStore] expiry chunk completed, remaining', nextRemaining);
+
+    if (nextRemaining <= 0) {
+      console.log('[authStore] expiry reached, clearing state');
       clearFn();
-    }, delay);
-  }
+      return;
+    }
+
+    if (nextRemaining > MAX_TIMEOUT) {
+      console.log('[authStore] re-scheduling long expiry, leftover ms', nextRemaining);
+    }
+    scheduleExpiry(expMs, clearFn);
+  }, delay);
 };
 
 export const authStore = create<AuthState>((set, get) => ({
@@ -73,35 +104,34 @@ export const authStore = create<AuthState>((set, get) => ({
   expiresAt: initialExpiresAt,
   isAuthenticated: isTokenValid(initialToken),
   setToken: (token) => {
+    console.log('[authStore] setToken called', token);
     const expMs = getTokenExpiryMs(token);
-    // Persist in cookie, respecting exp if present
     try {
-      if (expMs) {
-        Cookies.set(TOKEN_COOKIE, token, {
-          sameSite: 'lax',
-          path: '/',
-          secure: typeof window !== 'undefined' && window.location?.protocol === 'https:',
-          expires: new Date(expMs),
-        });
-      } else {
-        Cookies.set(TOKEN_COOKIE, token, {
-          sameSite: 'lax',
-          path: '/',
-          secure: typeof window !== 'undefined' && window.location?.protocol === 'https:',
-        });
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(AUTH_TOKEN_KEY, token);
+        console.log('[authStore] localStorage set', token);
       }
-    } catch (error) {
-      console.error(error);
+    } catch {
+      /* Empty */
     }
 
     set({ token, expiresAt: expMs ?? null, isAuthenticated: isTokenValid(token) });
+    console.log('[authStore] state after set', {
+      token,
+      expiresAt: expMs ?? null,
+      isAuthenticated: isTokenValid(token),
+    });
     scheduleExpiry(expMs ?? null, () => get().clear());
   },
   clear: () => {
+    console.log('[authStore] clear called');
     try {
-      Cookies.remove(TOKEN_COOKIE, { path: '/' });
-    } catch (error) {
-      console.error(error);
+      if (typeof window !== 'undefined') {
+        window.localStorage.removeItem(AUTH_TOKEN_KEY);
+        console.log('[authStore] localStorage cleared');
+      }
+    } catch {
+      /* Empty */
     }
     set({ token: null, expiresAt: null, isAuthenticated: false });
     if (expiryTimer) {
@@ -114,13 +144,9 @@ export const authStore = create<AuthState>((set, get) => ({
 export const useAuthStore = authStore;
 
 try {
-  if (initialExpiresAt && initialExpiresAt > Date.now()) {
-    const now = Date.now();
-    const delay = Math.max(0, initialExpiresAt - now);
-     
-    expiryTimer = window.setTimeout(() => {
-      authStore.getState().clear();
-    }, delay);
+  if (initialExpiresAt) {
+    console.log('[authStore] scheduling initial expiry');
+    scheduleExpiry(initialExpiresAt, () => authStore.getState().clear());
   }
 } catch (error) {
   console.error(error);

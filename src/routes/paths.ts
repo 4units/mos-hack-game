@@ -2,7 +2,6 @@ export const routes = {
   start: '/',
   game: '/game',
   faq: '/faq',
-  base: '/base',
   linkNumber: '/game/link-number',
   linkNumberDemo: '/game/link-number/demo',
   rewards: '/rewards',
