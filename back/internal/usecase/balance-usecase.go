@@ -58,9 +58,17 @@ func (b *BalanceUsecase) AddSoftCurrency(ctx context.Context, userID uuid.UUID, 
 }
 
 func (b *BalanceUsecase) GetSoftCurrency(ctx context.Context, userID uuid.UUID) (int, error) {
-	balance, err := b.BalanceStorage.GetSoftCurrency(ctx, userID)
+	softCurrency, err := b.BalanceStorage.GetSoftCurrency(ctx, userID)
 	if err != nil {
-		return 0, fmt.Errorf("failed to get soft currency balance: %w", err)
+		if !errors.Is(err, model.ErrBalanceNotExists) {
+			return 0, fmt.Errorf("failed to get balance: %w", err)
+		}
+		startSoftCurrency := b.cfg.StartSoftCurrency
+		balance := model.UserBalance{SoftCurrency: startSoftCurrency}
+		if err = b.BalanceStorage.CreateUserBalance(ctx, userID, balance); err != nil {
+			return 0, fmt.Errorf("failed to update balance: %w", err)
+		}
+		return startSoftCurrency, nil
 	}
-	return balance, nil
+	return softCurrency, nil
 }

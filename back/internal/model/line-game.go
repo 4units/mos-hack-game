@@ -10,6 +10,7 @@ import (
 type LineGameLevelGroupCode string
 
 type LineGameLevel struct {
+	LevelNum  int
 	FieldSize int
 	Start     LineGameLevelCell
 	End       LineGameLevelCell

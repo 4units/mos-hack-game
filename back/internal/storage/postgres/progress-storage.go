@@ -12,43 +12,43 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type ProgressStorage struct {
+type LineGameProgressStorage struct {
 	pool *pgxpool.Pool
 	psql squirrel.StatementBuilderType
 }
 
-func NewProgressStorage(pool *pgxpool.Pool) *ProgressStorage {
-	return &ProgressStorage{
+func NewLineGameProgressStorage(pool *pgxpool.Pool) *LineGameProgressStorage {
+	return &LineGameProgressStorage{
 		pool: pool,
 		psql: squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar),
 	}
 }
 
-func (p *ProgressStorage) GetUserLineGameLevel(
+func (p *LineGameProgressStorage) GetUserLineGameLevel(
 	ctx context.Context,
 	userID uuid.UUID,
-) (groupID model.LineGameLevelGroupCode, levelNum int, err error) {
+) (groupID model.LineGameLevelGroupCode, levelNum, passedCount int, err error) {
 	q, args, err := p.psql.
-		Select("level_group", "level_id").
+		Select("level_group", "level_id", "passed_count").
 		From("line_game_progress").
 		Where(squirrel.Eq{"user_id": userID}).
 		ToSql()
 	if err != nil {
-		return "", 0, fmt.Errorf("build query: %w", err)
+		return "", 0, 0, fmt.Errorf("build query: %w", err)
 	}
 
 	var grp string
-	if err = p.pool.QueryRow(ctx, q, args...).Scan(&grp, &levelNum); err != nil {
+	if err = p.pool.QueryRow(ctx, q, args...).Scan(&grp, &levelNum, &passedCount); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return "", 0, model.ErrUserHasNotLineGameProgress
+			return "", 0, 0, model.ErrUserHasNotLineGameProgress
 		}
-		return "", 0, fmt.Errorf("exec query: %w", err)
+		return "", 0, 0, fmt.Errorf("exec query: %w", err)
 	}
 
-	return model.LineGameLevelGroupCode(grp), levelNum, nil
+	return model.LineGameLevelGroupCode(grp), levelNum, passedCount, nil
 }
 
-func (p *ProgressStorage) AddUserLineGameLevel(
+func (p *LineGameProgressStorage) AddUserLineGameLevel(
 	ctx context.Context,
 	id uuid.UUID,
 	groupCode model.LineGameLevelGroupCode,
@@ -56,8 +56,8 @@ func (p *ProgressStorage) AddUserLineGameLevel(
 ) error {
 	q, args, err := p.psql.
 		Insert("line_game_progress").
-		Columns("user_id", "level_group", "level_id").
-		Values(id, string(groupCode), levelNum).
+		Columns("user_id", "level_group", "level_id", "passed_count").
+		Values(id, string(groupCode), levelNum, 0).
 		ToSql()
 	if err != nil {
 		return fmt.Errorf("build insert: %w", err)
@@ -78,16 +78,18 @@ func (p *ProgressStorage) AddUserLineGameLevel(
 	return nil
 }
 
-func (p *ProgressStorage) UpdateUserLineGameLevel(
+func (p *LineGameProgressStorage) UpdateUserLineGameLevel(
 	ctx context.Context,
 	userID uuid.UUID,
 	level model.LineGameLevelGroupCode,
+	passedCount int,
 	levelNum int,
 ) error {
 	q, args, err := p.psql.
 		Update("line_game_progress").
 		Set("level_group", string(level)).
 		Set("level_id", levelNum).
+		Set("passed_count", passedCount).
 		Where(squirrel.Eq{"user_id": userID}).
 		ToSql()
 	if err != nil {

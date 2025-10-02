@@ -16,6 +16,7 @@ type Balance struct {
 }
 
 type LineGame struct {
+	CheckAnswer       bool                      `yaml:"check_answer"`
 	LevelsDir         string                    `yaml:"levels_dir"`
 	RewardsConditions []LineGameRewardCondition `yaml:"rewards_conditions"`
 }
@@ -34,5 +35,5 @@ type ItemsPrice struct {
 }
 
 type Quiz struct {
-	SoftCurrencyReward int    `yaml:"soft_currency_reward"`
+	SoftCurrencyReward int `yaml:"soft_currency_reward"`
 }

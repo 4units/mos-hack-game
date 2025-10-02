@@ -15,9 +15,9 @@ import (
 //  @contact.name   API Support
 //  @contact.email  iamvkosarev@gmail.com
 
-//  @host           45.93.201.7
+//  @host           4units.ru
 //  @BasePath       /api
-//  @schemes        http
+//  @schemes        https
 
 // @securityDefinitions.apikey  BearerAuth
 // @in              header

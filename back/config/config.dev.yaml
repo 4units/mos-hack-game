@@ -9,6 +9,7 @@ host:
   http_port: 8081
 game:
   line_game:
+    check_answer: false
     levels_dir: "levels"
     rewards_conditions:
       - max_time: 10s

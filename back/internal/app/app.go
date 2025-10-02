@@ -63,7 +63,7 @@ func Run(cfg *config.Config) error {
 
 	lineGameLevelStorage := file_storage.NewLineGameLevelStorage(cfg.Game.LineGame)
 
-	progressStorage := postgres.NewProgressStorage(pool)
+	progressStorage := postgres.NewLineGameProgressStorage(pool)
 	balanceStorage := postgres.NewBalanceStorage(pool)
 
 	var balanceUsecase = usecase.NewBalanceUsecase(
@@ -93,7 +93,7 @@ func Run(cfg *config.Config) error {
 			LineGameLevelProvider:     lineGameUsecase,
 			UserIDExtractor:           tokenUsecase,
 			LineGameHintProvider:      lineGameUsecase,
-		},
+		}, cfg.Game.LineGame,
 	)
 
 	quizStorage := postgres.NewQuizStorage(pool)
