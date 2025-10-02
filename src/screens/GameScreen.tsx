@@ -27,7 +27,7 @@ export const GameScreen = ({ onShowGifts, onShowFaq, onStartLinkNumber }: GameSc
   return (
     <>
       <main className="main-bg flex min-h-screen bg-[var(--color-surface)] justify-center">
-        <div className="flex w-full max-w-[25rem] flex-col gap-7 justify-between text-[var(--color-on-surface)]">
+        <div className="flex w-full max-w-[25rem] flex-col gap-7 text-[var(--color-on-surface)]">
           <header className="flex items-center justify-between gap-4">
             <div className="flex items-center justify-center gap-4" aria-label="Статус игры">
               <PlatformNumber number={currentLevel} />
