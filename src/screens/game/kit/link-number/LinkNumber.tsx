@@ -459,6 +459,7 @@ export const LinkNumber = forwardRef<LinkNumberHandle, Props>(
               }
               aria-label={'Подсказка'}
               type="button"
+              disabled={disabled || isHintActive}
             >
               <BagIcon />
             </button>

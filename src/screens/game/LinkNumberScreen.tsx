@@ -3,7 +3,13 @@ import { LinkNumber, type LinkNumberHandle } from './kit/link-number/LinkNumber'
 import type { LevelFormat } from './kit/link-number/types';
 import StarsCount from '../../components/StarsCount.tsx';
 import PlatformNumber from '../../components/PlatformNumber.tsx';
-import { ClockIcon, GiftIcon, QuestionIcon } from '../../components/icons/index.ts';
+import {
+  ClockIcon,
+  GiftIcon,
+  LampIcon,
+  PauseIcon,
+  QuestionIcon,
+} from '../../components/icons/index.ts';
 import IconButton from '../../components/IconButton.tsx';
 import {
   useCallback,
@@ -61,11 +67,12 @@ const LinkNumberScreen = ({
   const balance = useStarsStore((state) => state.balance);
   const linkNumberRef = useRef<LinkNumberHandle>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const [isTimerPaused, setIsTimerPaused] = useState(false);
+  const [isStopTimeActive, setIsStopTimeActive] = useState(false);
+  const [isHintProcessing, setIsHintProcessing] = useState(false);
+  const [hintCountdown, setHintCountdown] = useState(0);
   const timerIntervalRef = useRef<number | null>(null);
   const resumeAfterHintRef = useRef(false);
-  const hintResumeTimeoutRef = useRef<number | null>(null);
-  const [isHintProcessing, setIsHintProcessing] = useState(false);
+  const hintCountdownIntervalRef = useRef<number | null>(null);
   const { mutate: completeLevel, isPending: isCompleting } = useCompleteLineLevel();
   const solutionPath = useMemo(() => solveLinkNumberLevel(level), [level]);
   const currentLevel = useLevelStore((state) => state.currentLevel);
@@ -74,8 +81,14 @@ const LinkNumberScreen = ({
 
   useEffect(() => {
     setElapsedSeconds(0);
-    setIsTimerPaused(false);
+    setIsStopTimeActive(false);
     setIsHintProcessing(false);
+    setHintCountdown(0);
+    if (hintCountdownIntervalRef.current) {
+      clearInterval(hintCountdownIntervalRef.current);
+      hintCountdownIntervalRef.current = null;
+    }
+    resumeAfterHintRef.current = false;
   }, [level]);
 
   useEffect(() => {
@@ -84,7 +97,8 @@ const LinkNumberScreen = ({
       timerIntervalRef.current = null;
     }
 
-    if (isTimerPaused) {
+    const shouldRun = !isStopTimeActive && !isHintProcessing && !isCompleting;
+    if (!shouldRun) {
       return;
     }
 
@@ -98,71 +112,89 @@ const LinkNumberScreen = ({
         timerIntervalRef.current = null;
       }
     };
-  }, [isTimerPaused]);
+  }, [isStopTimeActive, isHintProcessing, isCompleting]);
 
   useEffect(() => {
     return () => {
       if (timerIntervalRef.current) {
         clearInterval(timerIntervalRef.current);
       }
-      if (hintResumeTimeoutRef.current) {
-        clearTimeout(hintResumeTimeoutRef.current);
+      if (hintCountdownIntervalRef.current) {
+        clearInterval(hintCountdownIntervalRef.current);
       }
       setIsHintProcessing(false);
       resumeAfterHintRef.current = false;
+      setHintCountdown(0);
     };
   }, []);
 
   const handleToggleTimer = useCallback(() => {
-    setIsTimerPaused((prev) => !prev);
+    if (isHintProcessing) return;
     resumeAfterHintRef.current = false;
+    setIsStopTimeActive((prev) => !prev);
+  }, [isHintProcessing]);
+
+  const finishHint = useCallback(() => {
+    if (hintCountdownIntervalRef.current) {
+      clearInterval(hintCountdownIntervalRef.current);
+      hintCountdownIntervalRef.current = null;
+    }
+    setIsHintProcessing(false);
+
+    if (resumeAfterHintRef.current) {
+      resumeAfterHintRef.current = false;
+      setIsStopTimeActive(false);
+    }
   }, []);
 
   const handleShowHint = useCallback(() => {
     if (!solutionPath || !solutionPath.length || isHintProcessing) return;
 
-    const durationMs = 5000;
-    const wasPaused = isTimerPaused;
-
-    resumeAfterHintRef.current = !wasPaused;
-    setIsTimerPaused(true);
+    const durationSeconds = 5;
+    resumeAfterHintRef.current = !isStopTimeActive;
     setIsHintProcessing(true);
-    linkNumberRef.current?.showHint(solutionPath, { durationMs });
+    setHintCountdown(durationSeconds);
+    linkNumberRef.current?.showHint(solutionPath, { durationMs: durationSeconds * 1000 });
 
-    if (hintResumeTimeoutRef.current) {
-      clearTimeout(hintResumeTimeoutRef.current);
+    if (hintCountdownIntervalRef.current) {
+      clearInterval(hintCountdownIntervalRef.current);
     }
 
-    hintResumeTimeoutRef.current = window.setTimeout(() => {
-      hintResumeTimeoutRef.current = null;
-      setIsHintProcessing(false);
-      if (resumeAfterHintRef.current) {
-        resumeAfterHintRef.current = false;
-        setIsTimerPaused(false);
-      }
-    }, durationMs);
-  }, [isTimerPaused, solutionPath, isHintProcessing]);
+    hintCountdownIntervalRef.current = window.setInterval(() => {
+      setHintCountdown((prev) => {
+        if (prev <= 1) {
+          finishHint();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, [solutionPath, isHintProcessing, isStopTimeActive, finishHint]);
 
   const handleComplete = useCallback(() => {
-    const timeSinceStart = elapsedSeconds;
-    setIsTimerPaused(true);
+    if (isHintProcessing) {
+      finishHint();
+      setHintCountdown(0);
+    }
 
-    completeLevel(
-      { time_since_start: timeSinceStart },
-      {
-        onError: () => {
-          setIsTimerPaused(false);
-        },
-      }
-    );
-  }, [completeLevel, elapsedSeconds]);
+    const timeSinceStart = elapsedSeconds;
+
+    completeLevel({ time_since_start: timeSinceStart });
+  }, [completeLevel, elapsedSeconds, finishHint, isHintProcessing]);
 
   const formattedTime = useMemo(() => formatDuration(elapsedSeconds), [elapsedSeconds]);
-  const timeLabel = useMemo(
-    () => (isTimerPaused ? `${formattedTime} ⏸` : formattedTime),
-    [formattedTime, isTimerPaused]
+  const hintCountdownLabel = useMemo(
+    () => formatDuration(Math.max(0, hintCountdown)),
+    [hintCountdown]
   );
-  const stopDisabled = isCompleting;
+  const timerLabel = isHintProcessing ? hintCountdownLabel : formattedTime;
+  const timerIcon = useMemo(() => {
+    if (isHintProcessing) return <LampIcon />;
+    if (isStopTimeActive) return <PauseIcon />;
+    return <ClockIcon />;
+  }, [isHintProcessing, isStopTimeActive]);
+
+  const stopDisabled = isCompleting || isHintProcessing;
   const hintDisabled = isCompleting || isHintProcessing || !solutionPath?.length;
 
   return (
@@ -182,7 +214,11 @@ const LinkNumberScreen = ({
         <div className={'flex flex-row justify-between'}>
           <PlatformNumber number={demo ? 5 : currentLevel} />
           <StarsCount ariaLabel={'Количество звёзд'} number={demo ? 2150 : balance} />
-          <StarsCount ariaLabel={'Время'} label={demo ? '00:50' : timeLabel} icon={<ClockIcon />} />
+          <StarsCount
+            ariaLabel={'Время'}
+            label={demo ? '00:50' : timerLabel}
+            icon={demo ? <ClockIcon /> : timerIcon}
+          />
         </div>
         <section className="flex justify-center">
           <LinkNumber
@@ -196,7 +232,7 @@ const LinkNumberScreen = ({
             hintLabel={demo ? '1' : '3'}
             stopTimeDisabled={stopDisabled}
             hintDisabled={hintDisabled}
-            disabled={isCompleting}
+            disabled={isCompleting || isHintProcessing}
           />
         </section>
       </div>
