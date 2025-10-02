@@ -1,6 +1,6 @@
 import React, {
   forwardRef,
-  ReactNode,
+  type ReactNode,
   useCallback,
   useEffect,
   useImperativeHandle,
