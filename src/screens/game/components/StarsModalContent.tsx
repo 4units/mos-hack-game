@@ -1,6 +1,7 @@
-import { ModalCard, ModalCloseButton } from '../../../components/modal';
+import { ModalCard } from '../../../components/modal';
 import { leaderboard, userPosition } from '../constants';
-import { StarIcon } from '../../../components/icons';
+import { CloseIcon, StarIcon } from '../../../components/icons';
+import IconButton from '../../../components/IconButton';
 
 const StarsModalContent = ({ onClose, headingId }: { onClose: () => void; headingId: string }) => (
   <ModalCard className="gap-6">
@@ -14,7 +15,9 @@ const StarsModalContent = ({ onClose, headingId }: { onClose: () => void; headin
         </p>
       </div>
 
-      <ModalCloseButton onClick={onClose} />
+      <IconButton variant="ghost" aria-label="Закрыть" onClick={onClose} className="ml-auto">
+        <CloseIcon />
+      </IconButton>
     </div>
 
     <div className="flex flex-col gap-4">

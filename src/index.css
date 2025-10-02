@@ -358,6 +358,29 @@
   background: linear-gradient(180deg, rgba(6, 6, 152, 0.5) 0%, rgba(0, 0, 0, 0.5) 100%);
 }
 
+.link-number-modal-overlay {
+  background: linear-gradient(180deg, rgba(6, 6, 152, 0.5) 0%, rgba(0, 0, 0, 0.5) 100%);
+}
+
+.link-number-popover {
+  position: relative;
+  background: var(--color-lily);
+  border-radius: 22px;
+  padding: 24px;
+  color: var(--color-on-surface);
+}
+/* 
+.link-number-popover::after {
+  content: '';
+  position: absolute;
+  bottom: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 14px 14px 0 14px;
+  border-style: solid;
+  border-color: #dedede transparent transparent transparent;
+} */
+
 .speech-bubble {
   position: absolute;
   background: var(--color-lily);

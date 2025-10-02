@@ -1,4 +1,4 @@
-import { type PropsWithChildren, useCallback, useEffect } from 'react';
+import { type CSSProperties, type PropsWithChildren, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
 const MODAL_ROOT_ID = 'modal-root';
@@ -7,9 +7,18 @@ export type ModalProps = PropsWithChildren<{
   isOpen: boolean;
   onClose: () => void;
   labelledBy?: string;
+  overlayClassName?: string;
+  overlayStyle?: CSSProperties;
 }>;
 
-const Modal = ({ isOpen, onClose, labelledBy, children }: ModalProps) => {
+const Modal = ({
+  isOpen,
+  onClose,
+  labelledBy,
+  overlayClassName,
+  overlayStyle,
+  children,
+}: ModalProps) => {
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -51,7 +60,8 @@ const Modal = ({ isOpen, onClose, labelledBy, children }: ModalProps) => {
       <button
         type="button"
         aria-label="Закрыть модалку"
-        className="absolute inset-0 w-full cursor-default bg-[rgba(0,0,0,0.65)] border-none p-0"
+        className={`absolute inset-0 w-full cursor-default border-none p-0 bg-[rgba(0,0,0,0.65)] ${overlayClassName ?? ''}`.trim()}
+        style={overlayStyle}
         onClick={onClose}
       />
 

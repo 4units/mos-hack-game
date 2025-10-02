@@ -27,6 +27,12 @@ import useStarsBalance from '../../hooks/useStarsBalance.ts';
 import { solveLinkNumberLevel } from './kit/link-number/solver';
 import useLinkNumberLevel, { LINK_NUMBER_LEVEL_QUERY_KEY } from '../../hooks/useLinkNumberLevel.ts';
 import LinkNumberVictoryBottomSheet from './components/LinkNumberVictoryBottomSheet';
+import {
+  LinkNumberBoostersModal,
+  LinkNumberHintModal,
+  LinkNumberTimeStopModal,
+} from './components/link-number';
+import { useSpendHintBooster, useSpendTimeStopBooster } from '../../hooks/useLinkNumberBoosters';
 
 type LinkNumberScreenProps = {
   onBack: () => void;
@@ -37,6 +43,9 @@ type LinkNumberScreenProps = {
 };
 
 type BubbleArrow = 'right' | 'top-right' | 'bottom-left' | 'bottom-right';
+
+const HINT_COST = 50;
+const TIME_STOP_COST = 200;
 
 const Bubble = ({
   children,
@@ -73,6 +82,9 @@ const LinkNumberScreen = ({
   const [hintCountdown, setHintCountdown] = useState(0);
   const [isVictoryOpen, setIsVictoryOpen] = useState(false);
   const [completedSeconds, setCompletedSeconds] = useState<number | null>(null);
+  const [isBoostersModalOpen, setIsBoostersModalOpen] = useState(false);
+  const [isHintModalOpen, setIsHintModalOpen] = useState(false);
+  const [isTimeStopModalOpen, setIsTimeStopModalOpen] = useState(false);
   const timerIntervalRef = useRef<number | null>(null);
   const resumeAfterHintRef = useRef(false);
   const hintCountdownIntervalRef = useRef<number | null>(null);
@@ -82,6 +94,16 @@ const LinkNumberScreen = ({
     isPending: isCompleting,
     reset: resetCompleteMutation,
   } = useCompleteLineLevel();
+  const {
+    mutateAsync: spendTimeStopBoosterAsync,
+    isPending: isTimeStopSpending,
+    reset: resetTimeStopMutation,
+  } = useSpendTimeStopBooster();
+  const {
+    mutateAsync: spendHintBoosterAsync,
+    isPending: isHintSpending,
+    reset: resetHintMutation,
+  } = useSpendHintBooster();
   const solutionPath = useMemo(() => solveLinkNumberLevel(level), [level]);
   useStarsBalance();
   useLinkNumberLevel();
@@ -93,14 +115,19 @@ const LinkNumberScreen = ({
     setHintCountdown(0);
     setIsVictoryOpen(false);
     setCompletedSeconds(null);
+    setIsBoostersModalOpen(false);
+    setIsHintModalOpen(false);
+    setIsTimeStopModalOpen(false);
     completionGuardRef.current = false;
     resetCompleteMutation();
+    resetTimeStopMutation();
+    resetHintMutation();
     if (hintCountdownIntervalRef.current) {
       clearInterval(hintCountdownIntervalRef.current);
       hintCountdownIntervalRef.current = null;
     }
     resumeAfterHintRef.current = false;
-  }, [level, resetCompleteMutation]);
+  }, [level, resetCompleteMutation, resetHintMutation, resetTimeStopMutation]);
 
   useEffect(() => {
     if (timerIntervalRef.current) {
@@ -139,11 +166,43 @@ const LinkNumberScreen = ({
     };
   }, []);
 
-  const handleToggleTimer = useCallback(() => {
+  const activateTimeStop = useCallback(() => {
     if (isHintProcessing) return;
     resumeAfterHintRef.current = false;
-    setIsStopTimeActive((prev) => !prev);
+    setIsStopTimeActive(true);
   }, [isHintProcessing]);
+
+  const handleOpenBoosters = useCallback(() => {
+    setIsHintModalOpen(false);
+    setIsTimeStopModalOpen(false);
+    setIsBoostersModalOpen(true);
+  }, []);
+
+  const handleCloseBoosters = useCallback(() => {
+    setIsBoostersModalOpen(false);
+  }, []);
+
+  const handleRequestTimeStop = useCallback(() => {
+    if (isStopTimeActive || isTimeStopSpending) return;
+    setIsBoostersModalOpen(false);
+    setIsHintModalOpen(false);
+    setIsTimeStopModalOpen(true);
+  }, [isStopTimeActive, isTimeStopSpending]);
+
+  const handleRequestHint = useCallback(() => {
+    if (isHintProcessing || isHintSpending) return;
+    setIsBoostersModalOpen(false);
+    setIsTimeStopModalOpen(false);
+    setIsHintModalOpen(true);
+  }, [isHintProcessing, isHintSpending]);
+
+  const handleCloseHintModal = useCallback(() => {
+    setIsHintModalOpen(false);
+  }, []);
+
+  const handleCloseTimeModal = useCallback(() => {
+    setIsTimeStopModalOpen(false);
+  }, []);
 
   const finishHint = useCallback(() => {
     if (hintCountdownIntervalRef.current) {
@@ -158,7 +217,7 @@ const LinkNumberScreen = ({
     }
   }, []);
 
-  const handleShowHint = useCallback(() => {
+  const startHintSequence = useCallback(() => {
     if (!solutionPath || !solutionPath.length || isHintProcessing) return;
 
     const durationSeconds = 5;
@@ -181,6 +240,47 @@ const LinkNumberScreen = ({
       });
     }, 1000);
   }, [solutionPath, isHintProcessing, isStopTimeActive, finishHint]);
+
+  const handleConfirmTimeStop = useCallback(async () => {
+    if (isStopTimeActive || isHintProcessing || isTimeStopSpending) return;
+
+    try {
+      await spendTimeStopBoosterAsync();
+      handleCloseBoosters();
+      handleCloseTimeModal();
+      activateTimeStop();
+    } catch (error) {
+      console.error(error);
+    }
+  }, [
+    handleCloseBoosters,
+    handleCloseTimeModal,
+    activateTimeStop,
+    isHintProcessing,
+    isStopTimeActive,
+    isTimeStopSpending,
+    spendTimeStopBoosterAsync,
+  ]);
+
+  const handleConfirmHint = useCallback(async () => {
+    if (isHintProcessing || isHintSpending) return;
+
+    try {
+      await spendHintBoosterAsync();
+      handleCloseBoosters();
+      handleCloseHintModal();
+      startHintSequence();
+    } catch (error) {
+      console.error(error);
+    }
+  }, [
+    handleCloseBoosters,
+    handleCloseHintModal,
+    isHintProcessing,
+    isHintSpending,
+    spendHintBoosterAsync,
+    startHintSequence,
+  ]);
 
   const handleComplete = useCallback(() => {
     if (demo) return;
@@ -243,8 +343,9 @@ const LinkNumberScreen = ({
     });
   }, [queryClient, resetCompleteMutation]);
 
-  const isBoardDisabled = isCompleting || isHintProcessing || isVictoryOpen;
-  const stopDisabled = isBoardDisabled;
+  const isBoardDisabled =
+    isCompleting || isHintProcessing || isVictoryOpen || isTimeStopSpending || isHintSpending;
+  const stopDisabled = isBoardDisabled || isStopTimeActive;
   const hintDisabled = isBoardDisabled || !solutionPath?.length;
 
   return (
@@ -278,14 +379,15 @@ const LinkNumberScreen = ({
               level={level}
               padding={padding}
               onComplete={handleComplete}
-              onStopTime={handleToggleTimer}
-              onShowHint={handleShowHint}
+              onStopTime={handleRequestTimeStop}
+              onShowHint={handleRequestHint}
               stopTimeLabel={demo ? '3' : '3'}
               hintLabel={demo ? '1' : '3'}
               stopTimeDisabled={stopDisabled}
               hintDisabled={hintDisabled}
               disabled={isBoardDisabled}
               onBack={onBack}
+              onOpenBoosters={handleOpenBoosters}
             />
           </section>
         </div>
@@ -332,6 +434,31 @@ const LinkNumberScreen = ({
           </div>
         )}
       </main>
+
+      <LinkNumberBoostersModal
+        isOpen={isBoostersModalOpen}
+        onClose={handleCloseBoosters}
+        onSelectHint={handleRequestHint}
+        onSelectTimeStop={handleRequestTimeStop}
+        hintCostLabel={HINT_COST}
+        timeCostLabel={TIME_STOP_COST}
+        isHintDisabled={hintDisabled}
+        isTimeStopDisabled={stopDisabled}
+      />
+
+      <LinkNumberHintModal
+        isOpen={isHintModalOpen}
+        onClose={handleCloseHintModal}
+        onConfirm={handleConfirmHint}
+        isSubmitting={isHintSpending || isHintProcessing}
+      />
+
+      <LinkNumberTimeStopModal
+        isOpen={isTimeStopModalOpen}
+        onClose={handleCloseTimeModal}
+        onConfirm={handleConfirmTimeStop}
+        isSubmitting={isTimeStopSpending || isHintProcessing}
+      />
 
       <LinkNumberVictoryBottomSheet
         isOpen={isVictoryOpen}

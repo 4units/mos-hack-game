@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
-import { ModalCard, ModalCloseButton } from '../../../components/modal';
+import { ModalCard } from '../../../components/modal';
 import { energyRecoveryTime } from '../constants';
+import IconButton from '../../../components/IconButton';
+import { CloseIcon } from '../../../components/icons';
 
 const formatUnit = (value: number) => value.toString().padStart(2, '0');
 
@@ -25,7 +27,9 @@ const EnergyModalContent = ({ onClose, headingId }: { onClose: () => void; headi
           </p>
         </div>
 
-        <ModalCloseButton onClick={onClose} />
+        <IconButton variant="ghost" aria-label="Закрыть" onClick={onClose} className="ml-auto">
+          <CloseIcon />
+        </IconButton>
       </div>
 
       <div className="flex items-center justify-center gap-2">
