@@ -3,7 +3,6 @@ import BaseHeader from '../../components/BaseHeader';
 import { LinkNumber, type LinkNumberHandle } from './kit/link-number/LinkNumber';
 import type { LevelFormat } from './kit/link-number/types';
 import StarsCount from '../../components/StarsCount.tsx';
-import PlatformNumber from '../../components/PlatformNumber.tsx';
 import {
   ClockIcon,
   GiftIcon,
@@ -27,7 +26,6 @@ import { formatDuration } from '../../utils/format';
 import useStarsBalance from '../../hooks/useStarsBalance.ts';
 import { solveLinkNumberLevel } from './kit/link-number/solver';
 import useLinkNumberLevel, { LINK_NUMBER_LEVEL_QUERY_KEY } from '../../hooks/useLinkNumberLevel.ts';
-import { useLevelStore } from '../../stores/levelStore.ts';
 import LinkNumberVictoryBottomSheet from './components/LinkNumberVictoryBottomSheet';
 
 type LinkNumberScreenProps = {
@@ -85,7 +83,6 @@ const LinkNumberScreen = ({
     reset: resetCompleteMutation,
   } = useCompleteLineLevel();
   const solutionPath = useMemo(() => solveLinkNumberLevel(level), [level]);
-  const currentLevel = useLevelStore((state) => state.currentLevel);
   useStarsBalance();
   useLinkNumberLevel();
 
@@ -266,8 +263,7 @@ const LinkNumberScreen = ({
             </div>
           </div>
 
-          <div className={'flex flex-row justify-between'}>
-            <PlatformNumber number={demo ? 5 : currentLevel} />
+          <div className={'flex flex-row items-center gap-4'}>
             <StarsCount ariaLabel={'Количество звёзд'} number={demo ? 2150 : balance} />
             <StarsCount
               ariaLabel={'Время'}
