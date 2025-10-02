@@ -19,6 +19,8 @@ import useCompleteLineLevel from '../../hooks/useCompleteLineLevel.ts';
 import { formatDuration } from '../../utils/format';
 import useStarsBalance from '../../hooks/useStarsBalance.ts';
 import { solveLinkNumberLevel } from './kit/link-number/solver';
+import useLinkNumberLevel from '../../hooks/useLinkNumberLevel.ts';
+import { useLevelStore } from '../../stores/levelStore.ts';
 
 type LinkNumberScreenProps = {
   onBack: () => void;
@@ -66,8 +68,9 @@ const LinkNumberScreen = ({
   const [isHintProcessing, setIsHintProcessing] = useState(false);
   const { mutate: completeLevel, isPending: isCompleting } = useCompleteLineLevel();
   const solutionPath = useMemo(() => solveLinkNumberLevel(level), [level]);
-
+  const currentLevel = useLevelStore((state) => state.currentLevel);
   useStarsBalance();
+  useLinkNumberLevel();
 
   useEffect(() => {
     setElapsedSeconds(0);
@@ -177,7 +180,7 @@ const LinkNumberScreen = ({
           </div>
         </div>
         <div className={'flex flex-row justify-between'}>
-          <PlatformNumber number={demo ? 10 : 1} />
+          <PlatformNumber number={demo ? 5 : currentLevel} />
           <StarsCount ariaLabel={'Количество звёзд'} number={demo ? 2150 : balance} />
           <StarsCount ariaLabel={'Время'} label={demo ? '00:50' : timeLabel} icon={<ClockIcon />} />
         </div>

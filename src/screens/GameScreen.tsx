@@ -7,6 +7,8 @@ import { useState } from 'react';
 import StarsQuizBottomSheet from './game/components/StarsQuizBottomSheet';
 import useStarsBalance from '../hooks/useStarsBalance';
 import { useStarsStore } from '../stores/starsStore';
+import useLinkNumberLevel from '../hooks/useLinkNumberLevel.ts';
+import { useLevelStore } from '../stores/levelStore.ts';
 
 type GameScreenProps = {
   onShowGifts: () => void;
@@ -19,15 +21,16 @@ export const GameScreen = ({ onShowGifts, onShowFaq, onStartLinkNumber }: GameSc
   const [isStarsOpen, setIsStarsOpen] = useState(false);
   const balance = useStarsStore((state) => state.balance);
   const setBalance = useStarsStore((state) => state.setBalance);
+  const currentLevel = useLevelStore((state) => state.currentLevel);
   useStarsBalance();
-
+  useLinkNumberLevel();
   return (
     <>
       <main className="main-bg flex min-h-screen bg-[var(--color-surface)] justify-center">
         <div className="flex w-full max-w-[25rem] flex-col gap-7 justify-between text-[var(--color-on-surface)]">
           <header className="flex items-center justify-between gap-4">
             <div className="flex items-center justify-center gap-4" aria-label="Статус игры">
-              <PlatformNumber number={2} />
+              <PlatformNumber number={currentLevel} />
               <StarsCount
                 number={balance}
                 onClick={() => setIsStarsOpen(true)}

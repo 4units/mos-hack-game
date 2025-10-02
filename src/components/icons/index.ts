@@ -10,4 +10,5 @@ export { default as ClockIcon } from './ClockIcon.tsx';
 export { default as LockIcon } from './LockIcon.tsx';
 export { default as LampIcon } from './LampIcon.tsx';
 export { default as BagIcon } from './BagIcon.tsx';
+export { default as PauseIcon } from './PauseIcon.tsx';
 export type { Direction, IconProps } from './types';

@@ -7,6 +7,7 @@ export type LineGameLevelResponse = {
   end_cell: { x: number; y: number };
   order: { x: number; y: number }[];
   blockers: { x: number; y: number }[];
+  level_num: number; // Начинается с 0
 };
 
 export type CompleteLineLevelRequest = {
@@ -25,6 +26,7 @@ export const getLineGameLevel = async (): Promise<LevelFormat> => {
     end_cell: data.end_cell,
     order: data.order,
     blockers: data.blockers,
+    level_num: data.level_num,
   };
 };
 
