@@ -31,7 +31,8 @@ type LineGameReward struct {
 }
 
 type ItemsPrice struct {
-	LineGameHintPrice int `yaml:"line_game_hint_price"`
+	LineGameHintPrice            int `yaml:"line_game_hint_price"`
+	LineGameStopTimeBoosterPrice int `yaml:"line_game_stop_time_booster_price"`
 }
 
 type Quiz struct {

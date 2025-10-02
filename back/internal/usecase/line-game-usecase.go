@@ -196,21 +196,19 @@ func (l *LineGameUsecase) TryCompleteUserLevel(
 }
 
 func (l *LineGameUsecase) GetLevelHint(ctx context.Context, userID uuid.UUID) ([][]int, error) {
-	balance, err := l.BalanceUsecase.GetSoftCurrency(ctx, userID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get soft currency balance: %w", err)
-	}
-	if balance < l.pricesCfg.LineGameHintPrice {
-		return nil, ErrNotEnoughSoftCurrency
-	}
 	level, err := l.GetUserLevel(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user level: %w", err)
 	}
-	newBalance := balance - l.pricesCfg.LineGameHintPrice
-
-	if err = l.BalanceUsecase.AddSoftCurrency(ctx, userID, newBalance); err != nil {
-		return nil, fmt.Errorf("failed to update soft currency balance: %w", err)
+	if err = l.BalanceUsecase.TrySpendSoftCurrency(ctx, userID, l.pricesCfg.LineGameHintPrice); err != nil {
+		return nil, fmt.Errorf("failed to spend soft currency: %w", err)
 	}
 	return level.Answer, nil
+}
+
+func (l *LineGameUsecase) GetTimeStopBooster(ctx context.Context, userID uuid.UUID) error {
+	if err := l.BalanceUsecase.TrySpendSoftCurrency(ctx, userID, l.pricesCfg.LineGameHintPrice); err != nil {
+		return fmt.Errorf("failed to spend soft currency: %w", err)
+	}
+	return nil
 }

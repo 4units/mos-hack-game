@@ -26,15 +26,16 @@ type LineGameCompleteProcessor interface {
 	) (model.LineGameReward, error)
 }
 
-type LineGameHintProvider interface {
+type LineGameBoosterProvider interface {
 	GetLevelHint(ctx context.Context, userID uuid.UUID) ([][]int, error)
+	GetTimeStopBooster(ctx context.Context, userID uuid.UUID) error
 }
 
 type LineGameHandlerDeps struct {
 	LineGameLevelProvider     LineGameLevelProvider
 	LineGameCompleteProcessor LineGameCompleteProcessor
 	UserIDExtractor           UserIDExtractor
-	LineGameHintProvider      LineGameHintProvider
+	LineGameBoosterProvider   LineGameBoosterProvider
 }
 
 type LineGameHandler struct {
@@ -116,7 +117,7 @@ func (l *LineGameHandler) GetUserLevel(w http.ResponseWriter, r *http.Request) {
 
 type CompleteLevelRequest struct {
 	Answer         [][]int `json:"answer"`
-	TimeSinceStart int     `json:"time_since_start" validate:"required"`
+	TimeSinceStart int     `json:"time_since_start" validate:"required" example:"1"`
 }
 
 type CompleteLevelResponse struct {
@@ -200,7 +201,7 @@ func (l *LineGameHandler) GetLevelHint(w http.ResponseWriter, r *http.Request) {
 		logs.Error("failed to extract user id", err)
 		return
 	}
-	answer, err := l.LineGameHintProvider.GetLevelHint(r.Context(), userID)
+	answer, err := l.LineGameBoosterProvider.GetLevelHint(r.Context(), userID)
 	if err != nil {
 		http_errors.SendWrapped(w, err)
 		logs.Error("failed to get user level hint", err)
@@ -213,4 +214,28 @@ func (l *LineGameHandler) GetLevelHint(w http.ResponseWriter, r *http.Request) {
 		http_errors.SendWrapped(w, err)
 		logs.Error("failed to encode response", err)
 	}
+}
+
+// GetTimeStopBooster godoc
+// @Summary      Spend money on stop time booster
+// @Tags         line-game
+// @Security     BearerAuth
+// @Success      200
+// @Failure      400  {object}  http_errors.ResponseError
+// @Failure      401  {object}  http_errors.ResponseError
+// @Failure      500  {object}  http_errors.ResponseError
+// @Router       /game/line/time-stop-booster [get]
+func (l *LineGameHandler) GetTimeStopBooster(w http.ResponseWriter, r *http.Request) {
+	userID, err := l.UserIDExtractor.GetVerifiedUserIDFromRequest(r)
+	if err != nil {
+		http_errors.SendWrapped(w, err)
+		logs.Error("failed to extract user id", err)
+		return
+	}
+	if err = l.LineGameBoosterProvider.GetTimeStopBooster(r.Context(), userID); err != nil {
+		http_errors.SendWrapped(w, err)
+		logs.Error("failed to get time stop booster", err)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }

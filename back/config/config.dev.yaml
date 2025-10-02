@@ -26,6 +26,7 @@ game:
     questions_file_path: "config/game/quiz.json"
   items_price:
     line_game_hint_price: 50
+    line_game_stop_time_booster_price: 30
   balance:
     start_soft_currency: 200
 router:

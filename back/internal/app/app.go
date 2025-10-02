@@ -92,7 +92,7 @@ func Run(cfg *config.Config) error {
 			LineGameCompleteProcessor: lineGameUsecase,
 			LineGameLevelProvider:     lineGameUsecase,
 			UserIDExtractor:           tokenUsecase,
-			LineGameHintProvider:      lineGameUsecase,
+			LineGameBoosterProvider:   lineGameUsecase,
 		}, cfg.Game.LineGame,
 	)
 
