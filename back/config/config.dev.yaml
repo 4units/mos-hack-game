@@ -22,8 +22,7 @@ game:
         reward:
           soft_currency: 30
   quiz:
-    soft_currency_reward: 40
-    questions_file_path: "config/game/quiz.json"
+    soft_currency_reward: 50
   items_price:
     line_game_hint_price: 50
     line_game_stop_time_booster_price: 30
