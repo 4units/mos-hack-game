@@ -72,10 +72,11 @@ func (q QuizHandler) GetQuiz(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	resp := GetQuizResponse{
-		ID:       quiz.ID,
-		Question: quiz.Question,
-		Answers:  quiz.Answers,
-		InfoLink: quiz.InfoLink,
+		ID:                quiz.ID,
+		Question:          quiz.Question,
+		Answers:           quiz.Answers,
+		InfoLink:          quiz.InfoLink,
+		AnswerDescription: quiz.AnswerDescription,
 	}
 	if json.NewEncoder(w).Encode(resp); err != nil {
 		http_errors.SendWrapped(w, err)
