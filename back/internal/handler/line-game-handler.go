@@ -116,7 +116,7 @@ func (l *LineGameHandler) GetUserLevel(w http.ResponseWriter, r *http.Request) {
 
 type CompleteLevelRequest struct {
 	Answer         [][]int `json:"answer"`
-	TimeSinceStart int     `json:"time_since_start" validate:"required""`
+	TimeSinceStart int     `json:"time_since_start" validate:"required"`
 }
 
 type CompleteLevelResponse struct {
