@@ -18,6 +18,9 @@ export type CompleteLineLevelResponse = {
   soft_currency: number;
 };
 
+export const TIME_STOP_BOOSTER_ENDPOINT = '/game/line/time-stop-booster';
+export const HINT_BOOSTER_ENDPOINT = '/game/line/hint';
+
 export const getLineGameLevel = async (): Promise<LevelFormat> => {
   const { data } = await apiClient.get<LineGameLevelResponse>('/game/line/level');
   return {
@@ -35,6 +38,14 @@ export const completeLineGameLevel = async (
 ): Promise<CompleteLineLevelResponse> => {
   const { data } = await apiClient.post<CompleteLineLevelResponse>('/game/line/level', payload);
   return data;
+};
+
+export const spendTimeStopBooster = async (): Promise<void> => {
+  await apiClient.get(TIME_STOP_BOOSTER_ENDPOINT);
+};
+
+export const spendHintBooster = async (): Promise<void> => {
+  await apiClient.get(HINT_BOOSTER_ENDPOINT);
 };
 
 export default getLineGameLevel;

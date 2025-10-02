@@ -3,15 +3,7 @@ import BaseHeader from '../../components/BaseHeader';
 import { LinkNumber, type LinkNumberHandle } from './kit/link-number/LinkNumber';
 import type { LevelFormat } from './kit/link-number/types';
 import StarsCount from '../../components/StarsCount.tsx';
-import PlatformNumber from '../../components/PlatformNumber.tsx';
-import {
-  ClockIcon,
-  GiftIcon,
-  LampIcon,
-  PauseIcon,
-  QuestionIcon,
-} from '../../components/icons/index.ts';
-import IconButton from '../../components/IconButton.tsx';
+import { ClockIcon, LampIcon, PauseIcon } from '../../components/icons/index.ts';
 import {
   useCallback,
   useEffect,
@@ -27,8 +19,15 @@ import { formatDuration } from '../../utils/format';
 import useStarsBalance from '../../hooks/useStarsBalance.ts';
 import { solveLinkNumberLevel } from './kit/link-number/solver';
 import useLinkNumberLevel, { LINK_NUMBER_LEVEL_QUERY_KEY } from '../../hooks/useLinkNumberLevel.ts';
-import { useLevelStore } from '../../stores/levelStore.ts';
 import LinkNumberVictoryBottomSheet from './components/LinkNumberVictoryBottomSheet';
+import {
+  LinkNumberBoostersModal,
+  LinkNumberHintModal,
+  LinkNumberTimeStopModal,
+} from './components/link-number';
+import { useSpendHintBooster, useSpendTimeStopBooster } from '../../hooks/useLinkNumberBoosters';
+import PlatformNumber from '../../components/PlatformNumber.tsx';
+import { useLevelStore } from '../../stores/levelStore.ts';
 
 type LinkNumberScreenProps = {
   onBack: () => void;
@@ -68,6 +67,7 @@ const LinkNumberScreen = ({
 }: LinkNumberScreenProps) => {
   const queryClient = useQueryClient();
   const balance = useStarsStore((state) => state.balance);
+  const currentLevel = useLevelStore((state) => state.currentLevel);
   const linkNumberRef = useRef<LinkNumberHandle>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [isStopTimeActive, setIsStopTimeActive] = useState(false);
@@ -75,7 +75,10 @@ const LinkNumberScreen = ({
   const [hintCountdown, setHintCountdown] = useState(0);
   const [isVictoryOpen, setIsVictoryOpen] = useState(false);
   const [completedSeconds, setCompletedSeconds] = useState<number | null>(null);
-  const [completedLevelNumber, setCompletedLevelNumber] = useState<number | null>(null);
+  const [earnedStars, setEarnedStars] = useState<number | null>(null);
+  const [isBoostersModalOpen, setIsBoostersModalOpen] = useState(false);
+  const [isHintModalOpen, setIsHintModalOpen] = useState(false);
+  const [isTimeStopModalOpen, setIsTimeStopModalOpen] = useState(false);
   const timerIntervalRef = useRef<number | null>(null);
   const resumeAfterHintRef = useRef(false);
   const hintCountdownIntervalRef = useRef<number | null>(null);
@@ -85,8 +88,17 @@ const LinkNumberScreen = ({
     isPending: isCompleting,
     reset: resetCompleteMutation,
   } = useCompleteLineLevel();
+  const {
+    mutateAsync: spendTimeStopBoosterAsync,
+    isPending: isTimeStopSpending,
+    reset: resetTimeStopMutation,
+  } = useSpendTimeStopBooster();
+  const {
+    mutateAsync: spendHintBoosterAsync,
+    isPending: isHintSpending,
+    reset: resetHintMutation,
+  } = useSpendHintBooster();
   const solutionPath = useMemo(() => solveLinkNumberLevel(level), [level]);
-  const currentLevel = useLevelStore((state) => state.currentLevel);
   useStarsBalance();
   useLinkNumberLevel();
 
@@ -97,15 +109,20 @@ const LinkNumberScreen = ({
     setHintCountdown(0);
     setIsVictoryOpen(false);
     setCompletedSeconds(null);
-    setCompletedLevelNumber(null);
+    setEarnedStars(null);
+    setIsBoostersModalOpen(false);
+    setIsHintModalOpen(false);
+    setIsTimeStopModalOpen(false);
     completionGuardRef.current = false;
     resetCompleteMutation();
+    resetTimeStopMutation();
+    resetHintMutation();
     if (hintCountdownIntervalRef.current) {
       clearInterval(hintCountdownIntervalRef.current);
       hintCountdownIntervalRef.current = null;
     }
     resumeAfterHintRef.current = false;
-  }, [level, resetCompleteMutation]);
+  }, [level, resetCompleteMutation, resetHintMutation, resetTimeStopMutation]);
 
   useEffect(() => {
     if (timerIntervalRef.current) {
@@ -144,11 +161,43 @@ const LinkNumberScreen = ({
     };
   }, []);
 
-  const handleToggleTimer = useCallback(() => {
+  const activateTimeStop = useCallback(() => {
     if (isHintProcessing) return;
     resumeAfterHintRef.current = false;
-    setIsStopTimeActive((prev) => !prev);
+    setIsStopTimeActive(true);
   }, [isHintProcessing]);
+
+  const handleOpenBoosters = useCallback(() => {
+    setIsHintModalOpen(false);
+    setIsTimeStopModalOpen(false);
+    setIsBoostersModalOpen(true);
+  }, []);
+
+  const handleCloseBoosters = useCallback(() => {
+    setIsBoostersModalOpen(false);
+  }, []);
+
+  const handleRequestTimeStop = useCallback(() => {
+    if (isStopTimeActive || isTimeStopSpending) return;
+    setIsBoostersModalOpen(false);
+    setIsHintModalOpen(false);
+    setIsTimeStopModalOpen(true);
+  }, [isStopTimeActive, isTimeStopSpending]);
+
+  const handleRequestHint = useCallback(() => {
+    if (isHintProcessing || isHintSpending) return;
+    setIsBoostersModalOpen(false);
+    setIsTimeStopModalOpen(false);
+    setIsHintModalOpen(true);
+  }, [isHintProcessing, isHintSpending]);
+
+  const handleCloseHintModal = useCallback(() => {
+    setIsHintModalOpen(false);
+  }, []);
+
+  const handleCloseTimeModal = useCallback(() => {
+    setIsTimeStopModalOpen(false);
+  }, []);
 
   const finishHint = useCallback(() => {
     if (hintCountdownIntervalRef.current) {
@@ -163,7 +212,7 @@ const LinkNumberScreen = ({
     }
   }, []);
 
-  const handleShowHint = useCallback(() => {
+  const startHintSequence = useCallback(() => {
     if (!solutionPath || !solutionPath.length || isHintProcessing) return;
 
     const durationSeconds = 5;
@@ -187,6 +236,45 @@ const LinkNumberScreen = ({
     }, 1000);
   }, [solutionPath, isHintProcessing, isStopTimeActive, finishHint]);
 
+  const handleConfirmTimeStop = useCallback(() => {
+    if (isStopTimeActive || isHintProcessing || isTimeStopSpending) return;
+
+    handleCloseBoosters();
+    handleCloseTimeModal();
+    activateTimeStop();
+
+    void spendTimeStopBoosterAsync().catch((error) => {
+      console.error(error);
+    });
+  }, [
+    handleCloseBoosters,
+    handleCloseTimeModal,
+    activateTimeStop,
+    isHintProcessing,
+    isStopTimeActive,
+    isTimeStopSpending,
+    spendTimeStopBoosterAsync,
+  ]);
+
+  const handleConfirmHint = useCallback(() => {
+    if (isHintProcessing || isHintSpending) return;
+
+    handleCloseBoosters();
+    handleCloseHintModal();
+    startHintSequence();
+
+    void spendHintBoosterAsync().catch((error) => {
+      console.error(error);
+    });
+  }, [
+    handleCloseBoosters,
+    handleCloseHintModal,
+    isHintProcessing,
+    isHintSpending,
+    spendHintBoosterAsync,
+    startHintSequence,
+  ]);
+
   const handleComplete = useCallback(() => {
     if (demo) return;
     if (completionGuardRef.current) return;
@@ -203,9 +291,6 @@ const LinkNumberScreen = ({
       hintCountdownIntervalRef.current = null;
     }
 
-    const levelDisplayNumber = demo ? 5 : currentLevel;
-    setCompletedLevelNumber(levelDisplayNumber);
-
     const timeSinceStart = elapsedSeconds;
 
     if (timerIntervalRef.current) {
@@ -218,15 +303,17 @@ const LinkNumberScreen = ({
     setCompletedSeconds(timeSinceStart);
 
     void completeLevelAsync({ time_since_start: timeSinceStart })
-      .then(() => {
+      .then(({ soft_currency }) => {
+        setEarnedStars(soft_currency ?? null);
         setIsVictoryOpen(true);
       })
       .catch(() => {
         completionGuardRef.current = false;
         setCompletedSeconds(null);
         setIsStopTimeActive(false);
+        setEarnedStars(null);
       });
-  }, [completeLevelAsync, currentLevel, demo, elapsedSeconds, finishHint, isHintProcessing]);
+  }, [completeLevelAsync, demo, elapsedSeconds, finishHint, isHintProcessing]);
 
   const formattedTime = useMemo(() => formatDuration(elapsedSeconds), [elapsedSeconds]);
   const hintCountdownLabel = useMemo(
@@ -243,19 +330,19 @@ const LinkNumberScreen = ({
   const handleVictoryDismiss = useCallback(() => {
     setIsVictoryOpen(false);
     setCompletedSeconds(null);
-    setCompletedLevelNumber(null);
+    setEarnedStars(null);
     completionGuardRef.current = false;
     resetCompleteMutation();
     void queryClient.invalidateQueries({
       queryKey: LINK_NUMBER_LEVEL_QUERY_KEY,
       refetchType: 'inactive',
     });
-    onBack();
-  }, [onBack, queryClient, resetCompleteMutation]);
+  }, [queryClient, resetCompleteMutation]);
 
-  const isBoardDisabled = isCompleting || isHintProcessing || isVictoryOpen;
-  const stopDisabled = isBoardDisabled;
-  const hintDisabled = isBoardDisabled || !solutionPath?.length;
+  const isInteractionLocked = isCompleting || isHintProcessing || isVictoryOpen;
+  const isBoardDisabled = isInteractionLocked;
+  const stopDisabled = isInteractionLocked || isStopTimeActive || isTimeStopSpending;
+  const hintDisabled = isInteractionLocked || !solutionPath?.length || isHintSpending;
 
   return (
     <>
@@ -263,18 +350,10 @@ const LinkNumberScreen = ({
         <div className="flex w-full max-w-[25rem] flex-col gap-[40px] text-[var(--color-on-surface)]">
           <div className="flex items-center justify-between">
             <BaseHeader onBack={onBack} />
-            <div className="flex items-center gap-4">
-              <IconButton variant="ghost" aria-label="Справка" onClick={() => {}}>
-                <QuestionIcon />
-              </IconButton>
-              <IconButton variant="ghost" aria-label="Подарки" onClick={() => {}}>
-                <GiftIcon />
-              </IconButton>
-            </div>
+            <PlatformNumber number={demo ? 10 : currentLevel} />
           </div>
 
-          <div className={'flex flex-row justify-between'}>
-            <PlatformNumber number={demo ? 5 : currentLevel} />
+          <div className={'flex flex-row items-center gap-4'}>
             <StarsCount ariaLabel={'Количество звёзд'} number={demo ? 2150 : balance} />
             <StarsCount
               ariaLabel={'Время'}
@@ -289,13 +368,15 @@ const LinkNumberScreen = ({
               level={level}
               padding={padding}
               onComplete={handleComplete}
-              onStopTime={handleToggleTimer}
-              onShowHint={handleShowHint}
+              onStopTime={handleRequestTimeStop}
+              onShowHint={handleRequestHint}
               stopTimeLabel={demo ? '3' : '3'}
               hintLabel={demo ? '1' : '3'}
               stopTimeDisabled={stopDisabled}
               hintDisabled={hintDisabled}
               disabled={isBoardDisabled}
+              onBack={onBack}
+              onOpenBoosters={handleOpenBoosters}
             />
           </section>
         </div>
@@ -310,24 +391,24 @@ const LinkNumberScreen = ({
               className="absolute inset-0 mx-auto w-full max-w-[25rem] pointer-events-none"
               style={{ position: 'absolute' }}
             >
-              <Bubble style={{ top: 16, right: 120, maxWidth: 185 }} arrow="right">
+              {/* <Bubble style={{ top: 16, right: 120, maxWidth: 185 }} arrow="right">
                 Популярные вопросы
               </Bubble>
               <Bubble style={{ top: 72, right: 10, maxWidth: 170 }} arrow="top-right">
                 Ваши достижения и призы
+              </Bubble> */}
+              <Bubble style={{ top: 45, left: 30, maxWidth: 170 }} arrow="bottom-left">
+                Получайте звёзды
               </Bubble>
-              <Bubble style={{ top: 160, left: 60, maxWidth: 170 }} arrow="top-right">
-                Получите звёзды, ответив на вопросы
-              </Bubble>
-              <Bubble style={{ top: 525, left: 10, maxWidth: 170 }} arrow="bottom-left">
+              <Bubble style={{ top: 537, left: 13, maxWidth: 170 }} arrow="bottom-left">
                 Обмен звёзд на блок времени или подсказку
               </Bubble>
-              <Bubble style={{ top: 525, right: 10, maxWidth: 170 }} arrow="bottom-right">
+              {/* <Bubble style={{ top: 525, right: 10, maxWidth: 170 }} arrow="bottom-right">
                 Подсказка следующих шагов
               </Bubble>
               <Bubble style={{ top: 655, left: 64, maxWidth: 170 }} arrow="top-right">
                 Блокировка времени на платформе
-              </Bubble>
+              </Bubble> */}
             </div>
 
             <div className="w-full max-w-[25rem] px-[26px] pb-6">
@@ -343,12 +424,34 @@ const LinkNumberScreen = ({
         )}
       </main>
 
+      <LinkNumberBoostersModal
+        isOpen={isBoostersModalOpen}
+        onClose={handleCloseBoosters}
+        onSelectHint={handleRequestHint}
+        onSelectTimeStop={handleRequestTimeStop}
+        isHintDisabled={hintDisabled}
+        isTimeStopDisabled={stopDisabled}
+      />
+
+      <LinkNumberHintModal
+        isOpen={isHintModalOpen}
+        onClose={handleCloseHintModal}
+        onConfirm={handleConfirmHint}
+        isSubmitting={isHintSpending || isHintProcessing}
+      />
+
+      <LinkNumberTimeStopModal
+        isOpen={isTimeStopModalOpen}
+        onClose={handleCloseTimeModal}
+        onConfirm={handleConfirmTimeStop}
+        isSubmitting={isTimeStopSpending || isHintProcessing}
+      />
+
       <LinkNumberVictoryBottomSheet
         isOpen={isVictoryOpen}
         onClose={handleVictoryDismiss}
-        onNextLevel={handleVictoryDismiss}
         elapsedSeconds={completedSeconds}
-        currentLevel={completedLevelNumber ?? (demo ? 5 : currentLevel)}
+        rewardStars={earnedStars}
       />
     </>
   );

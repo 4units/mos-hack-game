@@ -12,8 +12,7 @@ import { Stage, Layer, Rect, Text, Group, Shape } from 'react-konva';
 import type { KonvaEventObject } from 'konva/lib/Node';
 import type { Cell, LevelFormat } from './types';
 import platformImg from '../../../../assets/platform.png';
-import StarsCount from '../../../../components/StarsCount.tsx';
-import { BagIcon, LampIcon, LockIcon } from '../../../../components/icons';
+import { LinkNumberActionBar, LinkNumberWinSection } from './components';
 
 type Props = {
   level: LevelFormat;
@@ -26,6 +25,8 @@ type Props = {
   onComplete?: () => void;
   onStopTime?: () => void;
   onShowHint?: () => void;
+  onBack?: () => void;
+  onOpenBoosters?: () => void;
   stopTimeLabel?: ReactNode;
   hintLabel?: ReactNode;
   stopTimeDisabled?: boolean;
@@ -118,6 +119,8 @@ export const LinkNumber = forwardRef<LinkNumberHandle, Props>(
       onComplete,
       onStopTime,
       onShowHint,
+      onBack,
+      onOpenBoosters,
       stopTimeLabel,
       hintLabel,
       stopTimeDisabled = false,
@@ -315,6 +318,14 @@ export const LinkNumber = forwardRef<LinkNumberHandle, Props>(
       pixelRatio: 1,
     } as React.ComponentProps<typeof Stage>;
 
+    const handleBagClick = useCallback(() => {
+      onOpenBoosters?.();
+    }, [onOpenBoosters]);
+
+    const bagDisabled = !onOpenBoosters || disabled || isHintActive;
+    const stopActionDisabled = stopTimeDisabled || disabled || isHintActive || !onStopTime;
+    const hintActionDisabled = hintDisabled || isHintActive || disabled || !onShowHint;
+
     return (
       <div className="flex flex-col w-full">
         <div
@@ -354,7 +365,7 @@ export const LinkNumber = forwardRef<LinkNumberHandle, Props>(
                         width={cellWidth}
                         height={cellHeight}
                         cornerRadius={10}
-                        fill="#000" // любой непрозрачный цвет
+                        fill="#000"
                         globalCompositeOperation="destination-out"
                       />
                     </Group>
@@ -441,43 +452,18 @@ export const LinkNumber = forwardRef<LinkNumberHandle, Props>(
         </div>
 
         {win ? (
-          <div className="relative flex items-center justify-center flex-col gap-[20px] z-1 mt-10">
-            <h3 className="text-[var(--color-raspberry)]">Вы прошли!</h3>
-            <button
-              type="button"
-              className="button-blur w-full"
-              aria-label={'На следующую платформу'}
-            >
-              <span className="text-[var(--color-raspberry)]">На следующую платформу</span>
-            </button>
-          </div>
+          <LinkNumberWinSection onNext={onBack} />
         ) : (
-          <div className={'flex flex-row items-center justify-between mt-[40px] w-full'}>
-            <button
-              className={
-                'flex items-center justify-center border-[1px] border-white rounded-[12px] h-[45px] w-[56px] p-0'
-              }
-              aria-label={'Подсказка'}
-              type="button"
-              disabled={disabled || isHintActive}
-            >
-              <BagIcon />
-            </button>
-            <StarsCount
-              icon={<LockIcon />}
-              label={stopTimeLabel ?? 'Стоп'}
-              ariaLabel={'Остановить время'}
-              disabled={stopTimeDisabled || disabled || isHintActive}
-              onClick={onStopTime}
-            />
-            <StarsCount
-              icon={<LampIcon />}
-              label={hintLabel ?? 'Подсказка'}
-              ariaLabel={'Показать решение'}
-              disabled={hintDisabled || isHintActive || disabled}
-              onClick={onShowHint}
-            />
-          </div>
+          <LinkNumberActionBar
+            onBagClick={handleBagClick}
+            onStopTime={onStopTime}
+            onShowHint={onShowHint}
+            stopTimeLabel={stopTimeLabel}
+            hintLabel={hintLabel}
+            stopTimeDisabled={stopActionDisabled}
+            hintDisabled={hintActionDisabled}
+            bagDisabled={bagDisabled}
+          />
         )}
         <div className="absolute flex w-full justify-center bottom-0 left-0 right-0 z-0">
           <img

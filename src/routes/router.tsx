@@ -7,6 +7,7 @@ import RewardsRoute from './RewardsRoute';
 import StartRoute from './StartRoute';
 import { routes } from './paths';
 import { RequireAuth } from './guards';
+import NotFoundRoute from './NotFoundRoute';
 
 export const router = createBrowserRouter([
   { path: routes.start, element: <StartRoute /> },
@@ -43,6 +44,7 @@ export const router = createBrowserRouter([
       </RequireAuth>
     ),
   },
+  { path: '*', element: <NotFoundRoute /> },
 ]);
 
 export default router;

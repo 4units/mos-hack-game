@@ -1,7 +1,8 @@
-import { type PropsWithChildren, useCallback, useEffect } from 'react';
+import { type PropsWithChildren, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 const MODAL_ROOT_ID = 'modal-root';
+const ANIMATION_DURATION = 300;
 
 export type BottomSheetProps = PropsWithChildren<{
   isOpen: boolean;
@@ -10,6 +11,10 @@ export type BottomSheetProps = PropsWithChildren<{
 }>;
 
 const BottomSheet = ({ isOpen, onClose, labelledBy, children }: BottomSheetProps) => {
+  const [isMounted, setIsMounted] = useState(isOpen);
+  const [isVisible, setIsVisible] = useState(isOpen);
+  const closeTimeoutRef = useRef<number | null>(null);
+
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -20,16 +25,53 @@ const BottomSheet = ({ isOpen, onClose, labelledBy, children }: BottomSheetProps
   );
 
   useEffect(() => {
-    if (!isOpen) return undefined;
+    if (!isMounted) return undefined;
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, handleKeyDown]);
+  }, [isMounted, handleKeyDown]);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (isOpen) {
+      if (closeTimeoutRef.current !== null) {
+        window.clearTimeout(closeTimeoutRef.current);
+        closeTimeoutRef.current = null;
+      }
+      setIsMounted(true);
+      requestAnimationFrame(() => setIsVisible(true));
+      return;
+    }
+
+    setIsVisible(false);
+    if (!isMounted) return;
+
+    closeTimeoutRef.current = window.setTimeout(() => {
+      setIsMounted(false);
+      closeTimeoutRef.current = null;
+    }, ANIMATION_DURATION);
+  }, [isOpen, isMounted]);
+
+  useEffect(
+    () => () => {
+      if (closeTimeoutRef.current !== null) {
+        window.clearTimeout(closeTimeoutRef.current);
+      }
+    },
+    []
+  );
+
+  if (!isMounted) return null;
 
   const modalRoot = document.getElementById(MODAL_ROOT_ID);
   if (!modalRoot) return null;
+
+  const overlayClassName = `absolute inset-0 w-full cursor-default bg-gradient-to-b from-[#060698] to-[#000000] border-none p-0 transition-opacity duration-300 ${
+    isVisible ? 'opacity-70 pointer-events-auto' : 'opacity-0 pointer-events-none'
+  }`;
+
+  const sheetWrapperClassName = `relative z-10 w-full transition-transform duration-300 ease-out ${
+    isVisible ? 'translate-y-0 pointer-events-auto' : 'translate-y-full pointer-events-none'
+  }`;
 
   return createPortal(
     <div
@@ -42,12 +84,12 @@ const BottomSheet = ({ isOpen, onClose, labelledBy, children }: BottomSheetProps
       <button
         type="button"
         aria-label="Закрыть модалку"
-        className="absolute inset-0 w-full cursor-default bg-gradient-to-b from-[#060698] to-[#000000] opacity-70 border-none p-0"
+        className={overlayClassName}
         onClick={onClose}
       />
 
       {/* Sheet container */}
-      <div className="relative z-10 w-full">
+      <div className={sheetWrapperClassName}>
         <div className="mx-auto w-full rounded-t-[20px] bg-[var(--color-lily)] py-[20px] px-[26px]  text-[var(--color-on-surface)]">
           {children}
         </div>
