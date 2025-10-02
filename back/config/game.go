@@ -9,29 +9,29 @@ type Game struct {
 }
 
 type Balance struct {
-	StartSoftCurrency int `yaml:"start_soft_currency" json:"start_soft_currency"`
+	StartSoftCurrency int `yaml:"start_soft_currency" json:"start_soft_currency" validate:"required,gt=0" example:"1"`
 }
 
 type LineGame struct {
-	CheckAnswer       bool                      `yaml:"check_answer" json:"check_answer"`
-	RewardsConditions []LineGameRewardCondition `yaml:"rewards_conditions" json:"rewards_conditions"`
+	CheckAnswer       bool                      `yaml:"check_answer" json:"check_answer" validate:"required" example:"false""`
+	RewardsConditions []LineGameRewardCondition `yaml:"rewards_conditions" json:"rewards_conditions" validate:"required"`
 }
 
 type LineGameRewardCondition struct {
 	// MaxTime is max time in seconds
-	MaxTime float64        `yaml:"max_time" json:"max_time"`
-	Reward  LineGameReward `yaml:"reward" json:"reward"`
+	MaxTime float64        `yaml:"max_time" json:"max_time" validate:"required,gt=0" example:"10"`
+	Reward  LineGameReward `yaml:"reward" json:"reward" validate:"required"`
 }
 
 type LineGameReward struct {
-	SoftCurrency int `yaml:"soft_currency" json:"soft_currency"`
+	SoftCurrency int `yaml:"soft_currency" json:"soft_currency" validate:"required,gt=0" example:"40"`
 }
 
 type ItemsPrice struct {
-	LineGameHintPrice            int `yaml:"line_game_hint_price" json:"line_game_hint_price"`
-	LineGameStopTimeBoosterPrice int `yaml:"line_game_stop_time_booster_price" json:"line_game_stop_time_booster_price"`
+	LineGameHintPrice            int `yaml:"line_game_hint_price" json:"line_game_hint_price" validate:"required,gt=0" example:"40"`
+	LineGameStopTimeBoosterPrice int `yaml:"line_game_stop_time_booster_price" json:"line_game_stop_time_booster_price" validate:"required,gt=0" example:"40"`
 }
 
 type Quiz struct {
-	SoftCurrencyReward int `yaml:"soft_currency_reward" json:"soft_currency_reward"`
+	SoftCurrencyReward int `yaml:"soft_currency_reward" json:"soft_currency_reward" validate:"required,gt=0" example:"40"`
 }
