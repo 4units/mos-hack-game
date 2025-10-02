@@ -90,7 +90,7 @@ func (l *LineGameHandler) GetUserLevel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	resp := GetUserLevelResponse{
-		LevelNum:  level.LevelNum,
+		LevelNum:  level.PassedCount,
 		FieldSize: level.FieldSize,
 		StartCell: Cell{
 			level.Start.X,

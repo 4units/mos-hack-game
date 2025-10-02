@@ -99,7 +99,7 @@ func (l *LineGameUsecase) GetUserLevel(ctx context.Context, userID uuid.UUID) (m
 			}
 		}
 	}
-	level.LevelNum = passedCount
+	level.PassedCount = passedCount
 	return level, nil
 }
 
@@ -176,7 +176,7 @@ func (l *LineGameUsecase) TryCompleteUserLevel(
 		return model.LineGameReward{}, fmt.Errorf("failed to get next level: %w", err)
 	}
 	if err = l.LineGameProgressStorage.UpdateUserLineGameLevel(
-		ctx, userID, nextGroupCode, nextLevelNum, passedCount+1,
+		ctx, userID, nextGroupCode, passedCount+1, nextLevelNum,
 	); err != nil {
 		return model.LineGameReward{}, fmt.Errorf("failed to update next level: %w", err)
 	}
