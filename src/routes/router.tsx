@@ -6,14 +6,43 @@ import LinkNumberDemoRoute from './LinkNumberDemoRoute';
 import RewardsRoute from './RewardsRoute';
 import StartRoute from './StartRoute';
 import { routes } from './paths';
+import { RequireAuth, RequireGuest } from './guards';
 
 export const router = createBrowserRouter([
-  { path: routes.start, element: <StartRoute /> },
-  { path: routes.game, element: <GameRoute /> },
+  {
+    path: routes.start,
+    element: (
+      <RequireGuest>
+        <StartRoute />
+      </RequireGuest>
+    ),
+  },
+  {
+    path: routes.game,
+    element: (
+      <RequireAuth>
+        <GameRoute />
+      </RequireAuth>
+    ),
+  },
   { path: routes.faq, element: <FaqRoute /> },
-  { path: routes.linkNumber, element: <LinkNumberRoute /> },
+  {
+    path: routes.linkNumber,
+    element: (
+      <RequireAuth>
+        <LinkNumberRoute />
+      </RequireAuth>
+    ),
+  },
   { path: routes.linkNumberDemo, element: <LinkNumberDemoRoute /> },
-  { path: routes.rewards, element: <RewardsRoute /> },
+  {
+    path: routes.rewards,
+    element: (
+      <RequireAuth>
+        <RewardsRoute />
+      </RequireAuth>
+    ),
+  },
 ]);
 
 export default router;
