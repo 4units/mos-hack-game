@@ -42,26 +42,11 @@ const VICTORY_TIERS: VictoryTier[] = [
   },
 ];
 
-const STAR_REWARDS = [
-  { limitSec: 60, stars: 500 }, // до 1 минуты
-  { limitSec: 120, stars: 400 }, // до 2 минут
-  { limitSec: 180, stars: 300 }, // до 3 минут
-  { limitSec: 300, stars: 200 }, // до 5 минут
-  { limitSec: 900, stars: 50 }, // до 15 минут
-] as const;
-
-const calcStars = (elapsedSeconds: number | null): number => {
-  const s = Math.max(0, Math.round(elapsedSeconds ?? 0));
-  for (const r of STAR_REWARDS) {
-    if (s <= r.limitSec) return r.stars;
-  }
-  return 50;
-};
-
 type LinkNumberVictoryBottomSheetProps = {
   isOpen: boolean;
   onClose: () => void;
   elapsedSeconds: number | null;
+  rewardStars?: number | null;
 };
 
 const pickTier = (elapsedSeconds: number): VictoryTier => {
@@ -95,11 +80,17 @@ const LinkNumberVictoryBottomSheet = ({
   isOpen,
   onClose,
   elapsedSeconds,
+  rewardStars,
 }: LinkNumberVictoryBottomSheetProps) => {
   const headingId = useMemo(() => 'link-number-victory-heading', []);
   const safeElapsed = useMemo(() => elapsedSeconds ?? 0, [elapsedSeconds]);
   const tier = useMemo(() => pickTier(safeElapsed), [safeElapsed]);
-  const stars = useMemo(() => calcStars(safeElapsed), [safeElapsed]);
+  const stars = useMemo(() => {
+    if (typeof rewardStars === 'number') {
+      return rewardStars;
+    }
+    return 0;
+  }, [rewardStars]);
   const dynamicSubtitle = useMemo(() => buildSubtitle(safeElapsed), [safeElapsed]);
 
   return (

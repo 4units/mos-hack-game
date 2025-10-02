@@ -3,14 +3,7 @@ import BaseHeader from '../../components/BaseHeader';
 import { LinkNumber, type LinkNumberHandle } from './kit/link-number/LinkNumber';
 import type { LevelFormat } from './kit/link-number/types';
 import StarsCount from '../../components/StarsCount.tsx';
-import {
-  ClockIcon,
-  GiftIcon,
-  LampIcon,
-  PauseIcon,
-  QuestionIcon,
-} from '../../components/icons/index.ts';
-import IconButton from '../../components/IconButton.tsx';
+import { ClockIcon, LampIcon, PauseIcon } from '../../components/icons/index.ts';
 import {
   useCallback,
   useEffect,
@@ -33,6 +26,8 @@ import {
   LinkNumberTimeStopModal,
 } from './components/link-number';
 import { useSpendHintBooster, useSpendTimeStopBooster } from '../../hooks/useLinkNumberBoosters';
+import PlatformNumber from '../../components/PlatformNumber.tsx';
+import { useLevelStore } from '../../stores/levelStore.ts';
 
 type LinkNumberScreenProps = {
   onBack: () => void;
@@ -75,6 +70,7 @@ const LinkNumberScreen = ({
 }: LinkNumberScreenProps) => {
   const queryClient = useQueryClient();
   const balance = useStarsStore((state) => state.balance);
+  const currentLevel = useLevelStore((state) => state.currentLevel);
   const linkNumberRef = useRef<LinkNumberHandle>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [isStopTimeActive, setIsStopTimeActive] = useState(false);
@@ -82,6 +78,7 @@ const LinkNumberScreen = ({
   const [hintCountdown, setHintCountdown] = useState(0);
   const [isVictoryOpen, setIsVictoryOpen] = useState(false);
   const [completedSeconds, setCompletedSeconds] = useState<number | null>(null);
+  const [earnedStars, setEarnedStars] = useState<number | null>(null);
   const [isBoostersModalOpen, setIsBoostersModalOpen] = useState(false);
   const [isHintModalOpen, setIsHintModalOpen] = useState(false);
   const [isTimeStopModalOpen, setIsTimeStopModalOpen] = useState(false);
@@ -115,6 +112,7 @@ const LinkNumberScreen = ({
     setHintCountdown(0);
     setIsVictoryOpen(false);
     setCompletedSeconds(null);
+    setEarnedStars(null);
     setIsBoostersModalOpen(false);
     setIsHintModalOpen(false);
     setIsTimeStopModalOpen(false);
@@ -310,13 +308,15 @@ const LinkNumberScreen = ({
     setCompletedSeconds(timeSinceStart);
 
     void completeLevelAsync({ time_since_start: timeSinceStart })
-      .then(() => {
+      .then(({ soft_currency }) => {
+        setEarnedStars(soft_currency ?? null);
         setIsVictoryOpen(true);
       })
       .catch(() => {
         completionGuardRef.current = false;
         setCompletedSeconds(null);
         setIsStopTimeActive(false);
+        setEarnedStars(null);
       });
   }, [completeLevelAsync, demo, elapsedSeconds, finishHint, isHintProcessing]);
 
@@ -335,6 +335,7 @@ const LinkNumberScreen = ({
   const handleVictoryDismiss = useCallback(() => {
     setIsVictoryOpen(false);
     setCompletedSeconds(null);
+    setEarnedStars(null);
     completionGuardRef.current = false;
     resetCompleteMutation();
     void queryClient.invalidateQueries({
@@ -354,14 +355,7 @@ const LinkNumberScreen = ({
         <div className="flex w-full max-w-[25rem] flex-col gap-[40px] text-[var(--color-on-surface)]">
           <div className="flex items-center justify-between">
             <BaseHeader onBack={onBack} />
-            <div className="flex items-center gap-4">
-              <IconButton variant="ghost" aria-label="Справка" onClick={() => {}}>
-                <QuestionIcon />
-              </IconButton>
-              <IconButton variant="ghost" aria-label="Подарки" onClick={() => {}}>
-                <GiftIcon />
-              </IconButton>
-            </div>
+            <PlatformNumber number={currentLevel} />
           </div>
 
           <div className={'flex flex-row items-center gap-4'}>
@@ -464,6 +458,7 @@ const LinkNumberScreen = ({
         isOpen={isVictoryOpen}
         onClose={handleVictoryDismiss}
         elapsedSeconds={completedSeconds}
+        rewardStars={earnedStars}
       />
     </>
   );
