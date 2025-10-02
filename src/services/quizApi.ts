@@ -8,6 +8,10 @@ export type QuizQuestionResponse = {
   info_link?: string;
 };
 
+export type QuizConfigResponse = {
+  soft_currency_reward: number;
+};
+
 export type QuizAnswerRequest = {
   id: string;
   answer: number;
@@ -22,6 +26,11 @@ export const getQuizQuestion = async (): Promise<QuizQuestionResponse> => {
   return data;
 };
 
+export const getQuizConfig = async (): Promise<QuizConfigResponse> => {
+  const { data } = await apiClient.get<QuizConfigResponse>('/config/quiz');
+  return data;
+};
+
 export const submitQuizAnswer = async (payload: QuizAnswerRequest): Promise<QuizAnswerResponse> => {
   const { data } = await apiClient.post<QuizAnswerResponse>('/game/quiz/answer', payload);
   return data;
@@ -29,6 +38,7 @@ export const submitQuizAnswer = async (payload: QuizAnswerRequest): Promise<Quiz
 
 const quizApi = {
   getQuizQuestion,
+  getQuizConfig,
   submitQuizAnswer,
 };
 

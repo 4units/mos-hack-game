@@ -39,9 +39,6 @@ type LinkNumberScreenProps = {
 
 type BubbleArrow = 'right' | 'top-right' | 'bottom-left' | 'bottom-right';
 
-const HINT_COST = 50;
-const TIME_STOP_COST = 200;
-
 const Bubble = ({
   children,
   style,
@@ -394,24 +391,24 @@ const LinkNumberScreen = ({
               className="absolute inset-0 mx-auto w-full max-w-[25rem] pointer-events-none"
               style={{ position: 'absolute' }}
             >
-              <Bubble style={{ top: 16, right: 120, maxWidth: 185 }} arrow="right">
+              {/* <Bubble style={{ top: 16, right: 120, maxWidth: 185 }} arrow="right">
                 Популярные вопросы
               </Bubble>
               <Bubble style={{ top: 72, right: 10, maxWidth: 170 }} arrow="top-right">
                 Ваши достижения и призы
+              </Bubble> */}
+              <Bubble style={{ top: 45, left: 30, maxWidth: 170 }} arrow="bottom-left">
+                Получайте звёзды
               </Bubble>
-              <Bubble style={{ top: 160, left: 60, maxWidth: 170 }} arrow="top-right">
-                Получите звёзды, ответив на вопросы
-              </Bubble>
-              <Bubble style={{ top: 525, left: 10, maxWidth: 170 }} arrow="bottom-left">
+              <Bubble style={{ top: 537, left: 13, maxWidth: 170 }} arrow="bottom-left">
                 Обмен звёзд на блок времени или подсказку
               </Bubble>
-              <Bubble style={{ top: 525, right: 10, maxWidth: 170 }} arrow="bottom-right">
+              {/* <Bubble style={{ top: 525, right: 10, maxWidth: 170 }} arrow="bottom-right">
                 Подсказка следующих шагов
               </Bubble>
               <Bubble style={{ top: 655, left: 64, maxWidth: 170 }} arrow="top-right">
                 Блокировка времени на платформе
-              </Bubble>
+              </Bubble> */}
             </div>
 
             <div className="w-full max-w-[25rem] px-[26px] pb-6">
@@ -432,8 +429,6 @@ const LinkNumberScreen = ({
         onClose={handleCloseBoosters}
         onSelectHint={handleRequestHint}
         onSelectTimeStop={handleRequestTimeStop}
-        hintCostLabel={HINT_COST}
-        timeCostLabel={TIME_STOP_COST}
         isHintDisabled={hintDisabled}
         isTimeStopDisabled={stopDisabled}
       />

@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BottomSheet } from '../../../components/modal';
 import StarsCount from '../../../components/StarsCount.tsx';
 import IconButton from '../../../components/IconButton.tsx';
 import { CloseIcon } from '../../../components/icons';
-import { getQuizQuestion, submitQuizAnswer } from '../../../services/quizApi';
+import { getQuizConfig, getQuizQuestion, submitQuizAnswer } from '../../../services/quizApi';
 
 type StarsQuizBottomSheetProps = {
   isOpen: boolean;
@@ -20,7 +20,18 @@ type QuizQuestion = {
   infoLink?: string;
 };
 
-const IDLE_MESSAGE = 'Правильно отвечайте на наши вопросы и получайте звёзды. Это ещё и полезно)';
+const IDLE_MESSAGE_TEMPLATE =
+  'Правильно отвечайте на наши вопросы и получайте {reward} звёзд. Это ещё и полезно)';
+const DEFAULT_IDLE_MESSAGE =
+  'Правильно отвечайте на наши вопросы и получайте звёзды. Это ещё и полезно)';
+
+const buildIdleMessage = (reward: number | null) => {
+  if (typeof reward === 'number' && reward > 0) {
+    return IDLE_MESSAGE_TEMPLATE.replace('{reward}', reward.toString());
+  }
+
+  return DEFAULT_IDLE_MESSAGE;
+};
 
 const StarsQuizBottomSheet = ({
   isOpen,
@@ -36,6 +47,8 @@ const StarsQuizBottomSheet = ({
   const [lastReward, setLastReward] = useState<number | null>(null);
   const [isAwaitingNext, setIsAwaitingNext] = useState(false);
   const [errorOptionIndex, setErrorOptionIndex] = useState<number | null>(null);
+  const [quizReward, setQuizReward] = useState<number | null>(null);
+  const hasLoadedQuizConfigRef = useRef(false);
 
   const headingId = useMemo(() => 'stars-quiz-heading', []);
 
@@ -69,15 +82,34 @@ const StarsQuizBottomSheet = ({
     }
   }, [resetInteraction]);
 
+  const loadQuizConfig = useCallback(async () => {
+    try {
+      const { soft_currency_reward: reward } = await getQuizConfig();
+      setQuizReward(typeof reward === 'number' && reward > 0 ? reward : null);
+    } catch (error) {
+      console.error('[StarsQuizBottomSheet] failed to load quiz config', error);
+    }
+  }, []);
+
   useEffect(() => {
     if (!isOpen) {
       setQuestion(null);
       setErrorMessage(null);
       resetInteraction();
+      hasLoadedQuizConfigRef.current = false;
       return;
     }
     loadQuiz();
   }, [isOpen, loadQuiz, resetInteraction]);
+
+  useEffect(() => {
+    if (!isOpen || hasLoadedQuizConfigRef.current) {
+      return;
+    }
+
+    hasLoadedQuizConfigRef.current = true;
+    loadQuizConfig();
+  }, [isOpen, loadQuizConfig]);
 
   const handleSelect = useCallback(
     async (optionIndex: number) => {
@@ -137,7 +169,7 @@ const StarsQuizBottomSheet = ({
       return 'Не удалось отправить ответ. Попробуйте ещё раз.';
     }
     if (isFetching) return 'Загружаем вопрос...';
-    return IDLE_MESSAGE;
+    return buildIdleMessage(quizReward);
   })();
 
   const renderOptions = () => {
