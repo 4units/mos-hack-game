@@ -216,7 +216,7 @@ func (h *ConfigHandler) UpdateBalanceGameConfig(w http.ResponseWriter, r *http.R
 // @Failure      500  {object}  http_errors.ResponseError
 // @Router       /config/price [get]
 func (h *ConfigHandler) GetPriceGameConfig(w http.ResponseWriter, _ *http.Request) {
-	if err := json.NewEncoder(w).Encode(h.BalanceConfigProcessor.BalanceConfig()); err != nil {
+	if err := json.NewEncoder(w).Encode(h.PriceConifgProcessor.PriceConifg()); err != nil {
 		http_errors.NewInternal("failed to encode config")
 		logs.Error("failed to encode config", err)
 	}
