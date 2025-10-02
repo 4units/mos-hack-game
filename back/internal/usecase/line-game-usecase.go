@@ -188,11 +188,7 @@ func (l *LineGameUsecase) TryCompleteUserLevel(
 			break
 		}
 	}
-	balance, err := l.BalanceUsecase.GetSoftCurrency(ctx, userID)
-	if err != nil {
-		return model.LineGameReward{}, fmt.Errorf("failed to get soft currency balance: %w", err)
-	}
-	if err = l.BalanceUsecase.AddSoftCurrency(ctx, userID, balance+rewardCfg.SoftCurrency); err != nil {
+	if err = l.BalanceUsecase.AddSoftCurrency(ctx, userID, rewardCfg.SoftCurrency); err != nil {
 		return model.LineGameReward{}, fmt.Errorf("failed to update soft currency balance: %w", err)
 	}
 	return model.LineGameReward{
