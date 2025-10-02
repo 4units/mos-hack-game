@@ -9,12 +9,7 @@ export type LineGameLevelResponse = {
   blockers: { x: number; y: number }[];
 };
 
-export type LineGameHintResponse = {
-  answer: number[][];
-};
-
 export type CompleteLineLevelRequest = {
-  answer: number[][];
   time_since_start: number;
 };
 
@@ -31,11 +26,6 @@ export const getLineGameLevel = async (): Promise<LevelFormat> => {
     order: data.order,
     blockers: data.blockers,
   };
-};
-
-export const getLineGameHint = async (): Promise<number[][]> => {
-  const { data } = await apiClient.get<LineGameHintResponse>('/game/line/hint');
-  return data.answer;
 };
 
 export const completeLineGameLevel = async (

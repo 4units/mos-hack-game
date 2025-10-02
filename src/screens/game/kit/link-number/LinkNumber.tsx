@@ -23,7 +23,7 @@ type Props = {
   padding?: number;
   cornerRadiusPx?: number;
   disabled?: boolean;
-  onComplete?: (answer: number[][]) => void;
+  onComplete?: () => void;
   onStopTime?: () => void;
   onShowHint?: () => void;
   stopTimeLabel?: ReactNode;
@@ -36,29 +36,6 @@ type Props = {
 const k = (p: Cell) => `${p.x},${p.y}`;
 const eq = (a: Cell, b: Cell) => a.x === b.x && a.y === b.y;
 const manhattanAdj = (a: Cell, b: Cell) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y) === 1;
-
-const matrixToOrderedCells = (matrix: number[][]): Cell[] => {
-  const ordered: { order: number; cell: Cell }[] = [];
-  matrix.forEach((row, y) => {
-    row.forEach((value, x) => {
-      if (value > 0) {
-        ordered.push({ order: value, cell: { x, y } });
-      }
-    });
-  });
-  return ordered.sort((a, b) => a.order - b.order).map((item) => item.cell);
-};
-
-const buildAnswerMatrix = (path: Cell[], size: number): number[][] => {
-  const indexByCell = new Map<string, number>();
-  path.forEach((cell, index) => {
-    indexByCell.set(k(cell), index + 1);
-  });
-
-  return Array.from({ length: size }, (_, y) =>
-    Array.from({ length: size }, (_, x) => indexByCell.get(`${x},${y}`) ?? 0)
-  );
-};
 
 const CorneredPath: React.FC<{
   points: { x: number; y: number }[];
@@ -125,7 +102,7 @@ const CorneredPath: React.FC<{
 
 export type LinkNumberHandle = {
   reset: () => void;
-  showHint: (answer: number[][], options?: { durationMs?: number }) => void;
+  showHint: (path: Cell[], options?: { durationMs?: number }) => void;
 };
 
 export const LinkNumber = forwardRef<LinkNumberHandle, Props>(
@@ -269,16 +246,15 @@ export const LinkNumber = forwardRef<LinkNumberHandle, Props>(
     useEffect(() => {
       if (!win || hasReportedWin) return;
       setHasReportedWin(true);
-      onComplete?.(buildAnswerMatrix(path, n));
-    }, [win, hasReportedWin, onComplete, path, n]);
+      onComplete?.();
+    }, [win, hasReportedWin, onComplete]);
 
     const showHint = useCallback(
-      (answer: number[][], options?: { durationMs?: number }) => {
+      (hintPathCells: Cell[], options?: { durationMs?: number }) => {
         resetState();
-        const orderedPath = matrixToOrderedCells(answer ?? []);
-        if (!orderedPath.length) return;
+        if (!hintPathCells.length) return;
 
-        setHintPath(orderedPath);
+        setHintPath(hintPathCells);
         setIsHintActive(true);
         draggingRef.current = false;
 
@@ -325,7 +301,7 @@ export const LinkNumber = forwardRef<LinkNumberHandle, Props>(
     );
 
     const activePoints = isHintActive && hintPoints.length >= 2 ? hintPoints : points;
-    const pathStroke = isHintActive ? '#DD41DB' : '#58FFFF';
+    const pathStroke = isHintActive ? '#58FFFF' : '#58FFFF';
 
     const autoRadius = Math.min(cellWidth, cellHeight) / 4;
     const cornerR = Math.max(2, cornerRadiusPx ?? autoRadius);
