@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import BaseHeader from '../../components/BaseHeader';
 import { LinkNumber, type LinkNumberHandle } from './kit/link-number/LinkNumber';
 import type { LevelFormat } from './kit/link-number/types';
@@ -25,8 +26,9 @@ import useCompleteLineLevel from '../../hooks/useCompleteLineLevel.ts';
 import { formatDuration } from '../../utils/format';
 import useStarsBalance from '../../hooks/useStarsBalance.ts';
 import { solveLinkNumberLevel } from './kit/link-number/solver';
-import useLinkNumberLevel from '../../hooks/useLinkNumberLevel.ts';
+import useLinkNumberLevel, { LINK_NUMBER_LEVEL_QUERY_KEY } from '../../hooks/useLinkNumberLevel.ts';
 import { useLevelStore } from '../../stores/levelStore.ts';
+import LinkNumberVictoryBottomSheet from './components/LinkNumberVictoryBottomSheet';
 
 type LinkNumberScreenProps = {
   onBack: () => void;
@@ -64,16 +66,25 @@ const LinkNumberScreen = ({
   demo = false,
   onStartGame,
 }: LinkNumberScreenProps) => {
+  const queryClient = useQueryClient();
   const balance = useStarsStore((state) => state.balance);
   const linkNumberRef = useRef<LinkNumberHandle>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [isStopTimeActive, setIsStopTimeActive] = useState(false);
   const [isHintProcessing, setIsHintProcessing] = useState(false);
   const [hintCountdown, setHintCountdown] = useState(0);
+  const [isVictoryOpen, setIsVictoryOpen] = useState(false);
+  const [completedSeconds, setCompletedSeconds] = useState<number | null>(null);
+  const [completedLevelNumber, setCompletedLevelNumber] = useState<number | null>(null);
   const timerIntervalRef = useRef<number | null>(null);
   const resumeAfterHintRef = useRef(false);
   const hintCountdownIntervalRef = useRef<number | null>(null);
-  const { mutate: completeLevel, isPending: isCompleting } = useCompleteLineLevel();
+  const completionGuardRef = useRef(false);
+  const {
+    mutateAsync: completeLevelAsync,
+    isPending: isCompleting,
+    reset: resetCompleteMutation,
+  } = useCompleteLineLevel();
   const solutionPath = useMemo(() => solveLinkNumberLevel(level), [level]);
   const currentLevel = useLevelStore((state) => state.currentLevel);
   useStarsBalance();
@@ -84,12 +95,17 @@ const LinkNumberScreen = ({
     setIsStopTimeActive(false);
     setIsHintProcessing(false);
     setHintCountdown(0);
+    setIsVictoryOpen(false);
+    setCompletedSeconds(null);
+    setCompletedLevelNumber(null);
+    completionGuardRef.current = false;
+    resetCompleteMutation();
     if (hintCountdownIntervalRef.current) {
       clearInterval(hintCountdownIntervalRef.current);
       hintCountdownIntervalRef.current = null;
     }
     resumeAfterHintRef.current = false;
-  }, [level]);
+  }, [level, resetCompleteMutation]);
 
   useEffect(() => {
     if (timerIntervalRef.current) {
@@ -172,15 +188,45 @@ const LinkNumberScreen = ({
   }, [solutionPath, isHintProcessing, isStopTimeActive, finishHint]);
 
   const handleComplete = useCallback(() => {
+    if (demo) return;
+    if (completionGuardRef.current) return;
+
+    completionGuardRef.current = true;
+
     if (isHintProcessing) {
       finishHint();
       setHintCountdown(0);
     }
 
+    if (hintCountdownIntervalRef.current) {
+      clearInterval(hintCountdownIntervalRef.current);
+      hintCountdownIntervalRef.current = null;
+    }
+
+    const levelDisplayNumber = demo ? 5 : currentLevel;
+    setCompletedLevelNumber(levelDisplayNumber);
+
     const timeSinceStart = elapsedSeconds;
 
-    completeLevel({ time_since_start: timeSinceStart });
-  }, [completeLevel, elapsedSeconds, finishHint, isHintProcessing]);
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+
+    resumeAfterHintRef.current = false;
+    setIsStopTimeActive(true);
+    setCompletedSeconds(timeSinceStart);
+
+    void completeLevelAsync({ time_since_start: timeSinceStart })
+      .then(() => {
+        setIsVictoryOpen(true);
+      })
+      .catch(() => {
+        completionGuardRef.current = false;
+        setCompletedSeconds(null);
+        setIsStopTimeActive(false);
+      });
+  }, [completeLevelAsync, currentLevel, demo, elapsedSeconds, finishHint, isHintProcessing]);
 
   const formattedTime = useMemo(() => formatDuration(elapsedSeconds), [elapsedSeconds]);
   const hintCountdownLabel = useMemo(
@@ -194,91 +240,117 @@ const LinkNumberScreen = ({
     return <ClockIcon />;
   }, [isHintProcessing, isStopTimeActive]);
 
-  const stopDisabled = isCompleting || isHintProcessing;
-  const hintDisabled = isCompleting || isHintProcessing || !solutionPath?.length;
+  const handleVictoryDismiss = useCallback(() => {
+    setIsVictoryOpen(false);
+    setCompletedSeconds(null);
+    setCompletedLevelNumber(null);
+    completionGuardRef.current = false;
+    resetCompleteMutation();
+    void queryClient.invalidateQueries({
+      queryKey: LINK_NUMBER_LEVEL_QUERY_KEY,
+      refetchType: 'inactive',
+    });
+    onBack();
+  }, [onBack, queryClient, resetCompleteMutation]);
+
+  const isBoardDisabled = isCompleting || isHintProcessing || isVictoryOpen;
+  const stopDisabled = isBoardDisabled;
+  const hintDisabled = isBoardDisabled || !solutionPath?.length;
 
   return (
-    <main className="main-bg flex min-h-screen justify-center relative">
-      <div className="flex w-full max-w-[25rem] flex-col gap-[40px] text-[var(--color-on-surface)]">
-        <div className="flex items-center justify-between">
-          <BaseHeader onBack={onBack} />
-          <div className="flex items-center gap-4">
-            <IconButton variant="ghost" aria-label="Справка" onClick={() => {}}>
-              <QuestionIcon />
-            </IconButton>
-            <IconButton variant="ghost" aria-label="Подарки" onClick={() => {}}>
-              <GiftIcon />
-            </IconButton>
+    <>
+      <main className="main-bg flex min-h-screen justify-center relative">
+        <div className="flex w-full max-w-[25rem] flex-col gap-[40px] text-[var(--color-on-surface)]">
+          <div className="flex items-center justify-between">
+            <BaseHeader onBack={onBack} />
+            <div className="flex items-center gap-4">
+              <IconButton variant="ghost" aria-label="Справка" onClick={() => {}}>
+                <QuestionIcon />
+              </IconButton>
+              <IconButton variant="ghost" aria-label="Подарки" onClick={() => {}}>
+                <GiftIcon />
+              </IconButton>
+            </div>
           </div>
-        </div>
-        <div className={'flex flex-row justify-between'}>
-          <PlatformNumber number={demo ? 5 : currentLevel} />
-          <StarsCount ariaLabel={'Количество звёзд'} number={demo ? 2150 : balance} />
-          <StarsCount
-            ariaLabel={'Время'}
-            label={demo ? '00:50' : timerLabel}
-            icon={demo ? <ClockIcon /> : timerIcon}
-          />
-        </div>
-        <section className="flex justify-center">
-          <LinkNumber
-            ref={linkNumberRef}
-            level={level}
-            padding={padding}
-            onComplete={handleComplete}
-            onStopTime={handleToggleTimer}
-            onShowHint={handleShowHint}
-            stopTimeLabel={demo ? '3' : '3'}
-            hintLabel={demo ? '1' : '3'}
-            stopTimeDisabled={stopDisabled}
-            hintDisabled={hintDisabled}
-            disabled={isCompleting || isHintProcessing}
-          />
-        </section>
-      </div>
 
-      {demo && (
-        <div
-          className="tutorial-overlay absolute inset-0 z-10 flex flex-col items-center justify-end"
-          aria-label="Как играть — подсказки"
-        >
-          {/* Tips layout container */}
+          <div className={'flex flex-row justify-between'}>
+            <PlatformNumber number={demo ? 5 : currentLevel} />
+            <StarsCount ariaLabel={'Количество звёзд'} number={demo ? 2150 : balance} />
+            <StarsCount
+              ariaLabel={'Время'}
+              label={demo ? '00:50' : timerLabel}
+              icon={demo ? <ClockIcon /> : timerIcon}
+            />
+          </div>
+
+          <section className="flex justify-center">
+            <LinkNumber
+              ref={linkNumberRef}
+              level={level}
+              padding={padding}
+              onComplete={handleComplete}
+              onStopTime={handleToggleTimer}
+              onShowHint={handleShowHint}
+              stopTimeLabel={demo ? '3' : '3'}
+              hintLabel={demo ? '1' : '3'}
+              stopTimeDisabled={stopDisabled}
+              hintDisabled={hintDisabled}
+              disabled={isBoardDisabled}
+            />
+          </section>
+        </div>
+
+        {demo && (
           <div
-            className="absolute inset-0 mx-auto w-full max-w-[25rem] pointer-events-none"
-            style={{ position: 'absolute' }}
+            className="tutorial-overlay absolute inset-0 z-10 flex flex-col items-center justify-end"
+            aria-label="Как играть — подсказки"
           >
-            <Bubble style={{ top: 16, right: 120, maxWidth: 185 }} arrow="right">
-              Популярные вопросы
-            </Bubble>
-            <Bubble style={{ top: 72, right: 10, maxWidth: 170 }} arrow="top-right">
-              Ваши достижения и призы
-            </Bubble>
-            <Bubble style={{ top: 160, left: 60, maxWidth: 170 }} arrow="top-right">
-              Получите звёзды, ответив на вопросы
-            </Bubble>
-            <Bubble style={{ top: 525, left: 10, maxWidth: 170 }} arrow="bottom-left">
-              Обмен звёзд на блок времени или подсказку
-            </Bubble>
-            <Bubble style={{ top: 525, right: 10, maxWidth: 170 }} arrow="bottom-right">
-              Подсказка следующих шагов
-            </Bubble>
-            <Bubble style={{ top: 655, left: 64, maxWidth: 170 }} arrow="top-right">
-              Блокировка времени на платформе
-            </Bubble>
-          </div>
-
-          <div className="w-full max-w-[25rem] px-[26px] pb-6">
-            <button
-              type="button"
-              className="w-full rounded-[13px] border-0 bg-[var(--color-violet)] px-4 py-3"
-              onClick={onStartGame}
+            {/* Tips layout container */}
+            <div
+              className="absolute inset-0 mx-auto w-full max-w-[25rem] pointer-events-none"
+              style={{ position: 'absolute' }}
             >
-              <span className="font-medium text-white text-1">Играть</span>
-            </button>
+              <Bubble style={{ top: 16, right: 120, maxWidth: 185 }} arrow="right">
+                Популярные вопросы
+              </Bubble>
+              <Bubble style={{ top: 72, right: 10, maxWidth: 170 }} arrow="top-right">
+                Ваши достижения и призы
+              </Bubble>
+              <Bubble style={{ top: 160, left: 60, maxWidth: 170 }} arrow="top-right">
+                Получите звёзды, ответив на вопросы
+              </Bubble>
+              <Bubble style={{ top: 525, left: 10, maxWidth: 170 }} arrow="bottom-left">
+                Обмен звёзд на блок времени или подсказку
+              </Bubble>
+              <Bubble style={{ top: 525, right: 10, maxWidth: 170 }} arrow="bottom-right">
+                Подсказка следующих шагов
+              </Bubble>
+              <Bubble style={{ top: 655, left: 64, maxWidth: 170 }} arrow="top-right">
+                Блокировка времени на платформе
+              </Bubble>
+            </div>
+
+            <div className="w-full max-w-[25rem] px-[26px] pb-6">
+              <button
+                type="button"
+                className="w-full rounded-[13px] border-0 bg-[var(--color-violet)] px-4 py-3"
+                onClick={onStartGame}
+              >
+                <span className="font-medium text-white text-1">Играть</span>
+              </button>
+            </div>
           </div>
-        </div>
-      )}
-    </main>
+        )}
+      </main>
+
+      <LinkNumberVictoryBottomSheet
+        isOpen={isVictoryOpen}
+        onClose={handleVictoryDismiss}
+        onNextLevel={handleVictoryDismiss}
+        elapsedSeconds={completedSeconds}
+        currentLevel={completedLevelNumber ?? (demo ? 5 : currentLevel)}
+      />
+    </>
   );
 };
 export default LinkNumberScreen;

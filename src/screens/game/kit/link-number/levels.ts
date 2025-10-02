@@ -23,4 +23,5 @@ export const basicLevel: LevelFormat = {
     [0, 0, 0, 0, 0],
     [3, 0, 0, 0, 0],
   ],
+  level_num: 10,
 };

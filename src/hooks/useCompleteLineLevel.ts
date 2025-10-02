@@ -13,7 +13,10 @@ export const useCompleteLineLevel = () => {
     onSuccess: ({ soft_currency }) => {
       setBalance(soft_currency);
       queryClient.invalidateQueries({ queryKey: STARS_BALANCE_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: LINK_NUMBER_LEVEL_QUERY_KEY });
+      queryClient.invalidateQueries({
+        queryKey: LINK_NUMBER_LEVEL_QUERY_KEY,
+        refetchType: 'inactive',
+      });
     },
   });
 };
