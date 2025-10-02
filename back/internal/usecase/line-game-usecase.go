@@ -8,6 +8,7 @@ import (
 	"github.com/4units/mos-hack-game/back/internal/model"
 	http_errors "github.com/4units/mos-hack-game/back/pkg/http-errors"
 	"github.com/google/uuid"
+	"log/slog"
 	"net/http"
 	"time"
 )
@@ -88,6 +89,10 @@ func (l *LineGameUsecase) GetUserLevel(ctx context.Context, userID uuid.UUID) (m
 		level, err = l.LineGameLevelStorage.GetLevel(ctx, groupCode, levelNum)
 		if err != nil {
 			if errors.Is(err, model.ErrLineGameNotExistsLevelInStorage) {
+				slog.Warn(
+					"User level not exists in the storage", slog.String("group_code", string(groupCode)),
+					slog.Int("level_num", levelNum),
+				)
 				level, err = l.LineGameLevelStorage.GetClosestLowOrDefaultLevel(ctx, groupCode, levelNum)
 			} else {
 				return model.LineGameLevel{}, fmt.Errorf("failed to get level: %w", err)
@@ -104,16 +109,16 @@ func (l *LineGameUsecase) TryCompleteUserLevel(
 	answer [][]int,
 	timeSinceStart time.Duration,
 ) (model.LineGameReward, error) {
-	groupCode, levelID, passedCount, err := l.LineGameProgressStorage.GetUserLineGameLevel(ctx, userID)
+	groupCode, levelNum, passedCount, err := l.LineGameProgressStorage.GetUserLineGameLevel(ctx, userID)
 	if err != nil {
 		return model.LineGameReward{}, fmt.Errorf("failed to get user level: %w", err)
 	}
 
 	if l.lineGameCfg.CheckAnswer {
-		level, err := l.LineGameLevelStorage.GetLevel(ctx, groupCode, levelID)
+		level, err := l.LineGameLevelStorage.GetLevel(ctx, groupCode, levelNum)
 		if err != nil {
 			if errors.Is(err, model.ErrLineGameNotExistsLevelInStorage) {
-				level, err = l.LineGameLevelStorage.GetClosestLowOrDefaultLevel(ctx, groupCode, levelID)
+				level, err = l.LineGameLevelStorage.GetClosestLowOrDefaultLevel(ctx, groupCode, levelNum)
 				if err != nil {
 					return model.LineGameReward{}, fmt.Errorf("failed to get closest level: %w", err)
 				}
@@ -166,7 +171,7 @@ func (l *LineGameUsecase) TryCompleteUserLevel(
 		}
 	}
 
-	nextGroupCode, nextLevelNum, err := l.LineGameLevelStorage.GetNextLevel(ctx, groupCode, levelID)
+	nextGroupCode, nextLevelNum, err := l.LineGameLevelStorage.GetNextLevel(ctx, groupCode, levelNum)
 	if err != nil {
 		return model.LineGameReward{}, fmt.Errorf("failed to get next level: %w", err)
 	}
