@@ -3,7 +3,7 @@ module github.com/4units/mos-hack-game/back
 go 1.24.4
 
 require (
-	github.com/4units/mos-hack-game-api v1.0.4
+	github.com/4units/mos-hack-game-api v1.0.5
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/golang-jwt/jwt/v5 v5.3.0

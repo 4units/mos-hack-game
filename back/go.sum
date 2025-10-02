@@ -1,5 +1,5 @@
-github.com/4units/mos-hack-game-api v1.0.4 h1:r5w4Q2H1eLrpfGbIlQocVXl1C1nkHs7NjEtxTxpyc2U=
-github.com/4units/mos-hack-game-api v1.0.4/go.mod h1:G5kXcQfyEEB3Fb1Qq19Wnd1tIBcTpaUbZa+hHeu0XPo=
+github.com/4units/mos-hack-game-api v1.0.5 h1:6ixldRfb4+1udPiAm8fZm6uGAuxwT5X16I1dLiF4ySc=
+github.com/4units/mos-hack-game-api v1.0.5/go.mod h1:G5kXcQfyEEB3Fb1Qq19Wnd1tIBcTpaUbZa+hHeu0XPo=
 github.com/BurntSushi/toml v1.2.1/go.mod h1:CxXYINrC8qIiEnFrOxCa7Jy5BFHlXnUU2pbicEuybxQ=
 github.com/BurntSushi/toml v1.5.0 h1:W5quZX/G/csjUnuI8SUYlsHs9M38FC7znL0lIO+DvMg=
 github.com/BurntSushi/toml v1.5.0/go.mod h1:ukJfTF/6rtPPRCnwkur4qwRxa8vTRFBF0uk2lLoLwho=

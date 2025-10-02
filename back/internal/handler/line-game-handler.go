@@ -127,6 +127,7 @@ type CompleteLevelResponse struct {
 // @Summary      Complete current user level
 // @Tags         line-game
 // @Produce      json
+// @Security     BearerAuth
 // @Accept       json
 // @Param        body  body  CompleteLevelRequest  true  "Complete level data"
 // @Success      200  {object}  CompleteLevelResponse
