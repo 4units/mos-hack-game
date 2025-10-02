@@ -27,6 +27,6 @@ game:
     line_game_hint_price: 50
     line_game_stop_time_booster_price: 30
   balance:
-    start_soft_currency: 200
+    start_soft_currency: 100
 router:
   request_timeout: 5s
