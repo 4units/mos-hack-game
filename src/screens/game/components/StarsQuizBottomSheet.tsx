@@ -76,7 +76,7 @@ const StarsQuizBottomSheet = ({
       });
     } catch (error) {
       console.error('[StarsQuizBottomSheet] failed to load quiz question', error);
-      setErrorMessage('Не удалось загрузить вопрос. Попробуйте ещё раз.');
+      setErrorMessage('Попробуете ещё?');
     } finally {
       setIsFetching(false);
     }
@@ -135,7 +135,7 @@ const StarsQuizBottomSheet = ({
         setStatus('error');
         setErrorOptionIndex(optionIndex);
         setSelected(null);
-        setErrorMessage('Не удалось отправить ответ. Попробуйте ещё раз.');
+        setErrorMessage('Попробуете ещё?');
       }
     },
     [question, isAwaitingNext, isFetching, onScoreChange, score]
@@ -155,18 +155,22 @@ const StarsQuizBottomSheet = ({
           ? 'К сожалению, нет'
           : 'Как получить больше?';
 
+  const isResultState = status === 'correct' || status === 'wrong';
+  const resultDescription = isResultState ? (question?.answerDescription ?? null) : null;
+
   const messageText = (() => {
     if (errorMessage) return errorMessage;
     if (status === 'correct') {
-      const rewardText = lastReward && lastReward > 0 ? `Добавили ${lastReward} звёзд.` : '';
-      const description = question?.answerDescription ?? 'Попробуете ещё?';
-      return [rewardText, description].filter(Boolean).join(' ');
+      if (lastReward && lastReward > 0) {
+        return `Добавили ${lastReward} звёзд.`;
+      }
+      return resultDescription ? null : 'Попробуете ещё?';
     }
     if (status === 'wrong') {
-      return question?.answerDescription ?? 'Попробуете ещё?';
+      return resultDescription ? null : 'Попробуете ещё?';
     }
     if (status === 'error') {
-      return 'Не удалось отправить ответ. Попробуйте ещё раз.';
+      return 'Попробуете ещё?';
     }
     if (isFetching) return 'Загружаем вопрос...';
     return buildIdleMessage(quizReward);
@@ -251,15 +255,18 @@ const StarsQuizBottomSheet = ({
 
       <div className="mt-8 flex flex-col gap-3">
         <h3 className="text-[var(--color-violet)]">{titleText}</h3>
-        <p className="text-[var(--color-black)] text-1">{messageText}</p>
-        {(status === 'correct' || status === 'wrong') && question?.infoLink && (
+        {messageText && <p className="text-[var(--color-black)] text-1">{messageText}</p>}
+        {resultDescription && (
+          <p className="text-[var(--color-black)] text-1">{resultDescription}</p>
+        )}
+        {isResultState && question?.infoLink && (
           <a
             href={question.infoLink}
             target="_blank"
             rel="noreferrer"
             className="text-[var(--color-violet)] text-1 underline"
           >
-            Узнать больше
+            Подробнее
           </a>
         )}
       </div>
