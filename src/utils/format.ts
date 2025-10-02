@@ -15,4 +15,13 @@ export const formatStars = (value: number): string => {
   return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 };
 
+export const formatDuration = (seconds: number): string => {
+  const safeSeconds = Number.isFinite(seconds) ? Math.max(0, Math.floor(seconds)) : 0;
+  const minutes = Math.floor(safeSeconds / 60)
+    .toString()
+    .padStart(2, '0');
+  const remainder = (safeSeconds % 60).toString().padStart(2, '0');
+  return `${minutes}:${remainder}`;
+};
+
 export default formatStars;
