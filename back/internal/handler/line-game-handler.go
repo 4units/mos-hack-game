@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"github.com/4units/mos-hack-game/back/config"
 	"github.com/4units/mos-hack-game/back/internal/model"
 	http_errors "github.com/4units/mos-hack-game/back/pkg/http-errors"
 	logs "github.com/4units/mos-hack-game/back/pkg/logging"
@@ -25,30 +26,34 @@ type LineGameCompleteProcessor interface {
 	) (model.LineGameReward, error)
 }
 
-type LineGameHintProvider interface {
+type LineGameBoosterProvider interface {
 	GetLevelHint(ctx context.Context, userID uuid.UUID) ([][]int, error)
+	GetTimeStopBooster(ctx context.Context, userID uuid.UUID) error
 }
 
 type LineGameHandlerDeps struct {
 	LineGameLevelProvider     LineGameLevelProvider
 	LineGameCompleteProcessor LineGameCompleteProcessor
 	UserIDExtractor           UserIDExtractor
-	LineGameHintProvider      LineGameHintProvider
+	LineGameBoosterProvider   LineGameBoosterProvider
 }
 
 type LineGameHandler struct {
 	LineGameHandlerDeps
+	cfg      config.LineGame
 	validate *validator.Validate
 }
 
-func NewLineGameHandler(deps LineGameHandlerDeps) *LineGameHandler {
+func NewLineGameHandler(deps LineGameHandlerDeps, cfg config.LineGame) *LineGameHandler {
 	return &LineGameHandler{
 		LineGameHandlerDeps: deps,
 		validate:            validator.New(),
+		cfg:                 cfg,
 	}
 }
 
 type GetUserLevelResponse struct {
+	LevelNum  int    `json:"level_num"`
 	FieldSize int    `json:"field_size"`
 	StartCell Cell   `json:"start_cell"`
 	EndCell   Cell   `json:"end_cell"`
@@ -61,6 +66,16 @@ type Cell struct {
 	Y int `json:"y"`
 }
 
+// GetUserLevel godoc
+// @Summary      Get current user level
+// @Tags         line-game
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200  {object}  GetUserLevelResponse
+// @Failure      400  {object}  http_errors.ResponseError
+// @Failure      401  {object}  http_errors.ResponseError
+// @Failure      500  {object}  http_errors.ResponseError
+// @Router       /game/line/level [get]
 func (l *LineGameHandler) GetUserLevel(w http.ResponseWriter, r *http.Request) {
 	userID, err := l.UserIDExtractor.GetVerifiedUserIDFromRequest(r)
 	if err != nil {
@@ -75,6 +90,7 @@ func (l *LineGameHandler) GetUserLevel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	resp := GetUserLevelResponse{
+		LevelNum:  level.PassedCount,
 		FieldSize: level.FieldSize,
 		StartCell: Cell{
 			level.Start.X,
@@ -100,14 +116,26 @@ func (l *LineGameHandler) GetUserLevel(w http.ResponseWriter, r *http.Request) {
 }
 
 type CompleteLevelRequest struct {
-	Answer         [][]int `json:"answer" validate:"required""`
-	TimeSinceStart int     `json:"time_since_start" validate:"required""`
+	Answer         [][]int `json:"answer"`
+	TimeSinceStart int     `json:"time_since_start" validate:"required" example:"1"`
 }
 
 type CompleteLevelResponse struct {
 	SoftCurrency int `json:"soft_currency"`
 }
 
+// CompleteLevel godoc
+// @Summary      Complete current user level
+// @Tags         line-game
+// @Produce      json
+// @Security     BearerAuth
+// @Accept       json
+// @Param        body  body  CompleteLevelRequest  true  "Complete level data"
+// @Success      200  {object}  CompleteLevelResponse
+// @Failure      400  {object}  http_errors.ResponseError
+// @Failure      401  {object}  http_errors.ResponseError
+// @Failure      500  {object}  http_errors.ResponseError
+// @Router       /game/line/level [post]
 func (l *LineGameHandler) CompleteLevel(w http.ResponseWriter, r *http.Request) {
 	userID, err := l.UserIDExtractor.GetVerifiedUserIDFromRequest(r)
 	if err != nil {
@@ -124,12 +152,14 @@ func (l *LineGameHandler) CompleteLevel(w http.ResponseWriter, r *http.Request) 
 	if validationErr(w, l.validate, req) {
 		return
 	}
-	answerRowsCount := len(req.Answer)
-	for _, row := range req.Answer {
-		if len(row) != answerRowsCount {
-			http_errors.SendBadRequest(w, "answer rows count is invalid: exacted equal size of axis")
-			logs.Error("answer rows and column count is not the same", err)
-			return
+	if l.cfg.CheckAnswer {
+		answerRowsCount := len(req.Answer)
+		for _, row := range req.Answer {
+			if len(row) != answerRowsCount {
+				http_errors.SendBadRequest(w, "answer rows count is invalid: exacted equal size of axis")
+				logs.Error("answer rows and column count is not the same", err)
+				return
+			}
 		}
 	}
 	reward, err := l.LineGameCompleteProcessor.TryCompleteUserLevel(
@@ -154,6 +184,16 @@ type GetLevelHintResponse struct {
 	Answer [][]int `json:"answer" validate:"required"`
 }
 
+// GetLevelHint godoc
+// @Summary      Get current user level's hint
+// @Tags         line-game
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200  {object}  GetLevelHintResponse
+// @Failure      400  {object}  http_errors.ResponseError
+// @Failure      401  {object}  http_errors.ResponseError
+// @Failure      500  {object}  http_errors.ResponseError
+// @Router       /game/line/hint [get]
 func (l *LineGameHandler) GetLevelHint(w http.ResponseWriter, r *http.Request) {
 	userID, err := l.UserIDExtractor.GetVerifiedUserIDFromRequest(r)
 	if err != nil {
@@ -161,7 +201,7 @@ func (l *LineGameHandler) GetLevelHint(w http.ResponseWriter, r *http.Request) {
 		logs.Error("failed to extract user id", err)
 		return
 	}
-	answer, err := l.LineGameHintProvider.GetLevelHint(r.Context(), userID)
+	answer, err := l.LineGameBoosterProvider.GetLevelHint(r.Context(), userID)
 	if err != nil {
 		http_errors.SendWrapped(w, err)
 		logs.Error("failed to get user level hint", err)
@@ -174,4 +214,28 @@ func (l *LineGameHandler) GetLevelHint(w http.ResponseWriter, r *http.Request) {
 		http_errors.SendWrapped(w, err)
 		logs.Error("failed to encode response", err)
 	}
+}
+
+// GetTimeStopBooster godoc
+// @Summary      Spend money on stop time booster
+// @Tags         line-game
+// @Security     BearerAuth
+// @Success      200
+// @Failure      400  {object}  http_errors.ResponseError
+// @Failure      401  {object}  http_errors.ResponseError
+// @Failure      500  {object}  http_errors.ResponseError
+// @Router       /game/line/time-stop-booster [get]
+func (l *LineGameHandler) GetTimeStopBooster(w http.ResponseWriter, r *http.Request) {
+	userID, err := l.UserIDExtractor.GetVerifiedUserIDFromRequest(r)
+	if err != nil {
+		http_errors.SendWrapped(w, err)
+		logs.Error("failed to extract user id", err)
+		return
+	}
+	if err = l.LineGameBoosterProvider.GetTimeStopBooster(r.Context(), userID); err != nil {
+		http_errors.SendWrapped(w, err)
+		logs.Error("failed to get time stop booster", err)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }

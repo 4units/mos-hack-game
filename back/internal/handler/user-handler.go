@@ -48,11 +48,12 @@ type RegisterAnonymousResponse struct {
 }
 
 // GetAnonymouseUserToken godoc
-// @Summary      Provide anonymouse user token
-// @Description  create new token
+// @Summary      Get anonymous user token
+// @Description  Creates a new anonymous user and returns an auth token.
 // @Tags         user
 // @Produce      json
 // @Success      200  {object}  RegisterAnonymousResponse
+// @Failure      500  {object}  http_errors.ResponseError
 // @Router       /user/token/anonymous [get]
 func (h *UserHandler) GetAnonymouseUserToken(w http.ResponseWriter, r *http.Request) {
 	token, err := h.UserAuthenticator.CreateAnonymouseUser(r.Context())
@@ -68,15 +69,60 @@ func (h *UserHandler) GetAnonymouseUserToken(w http.ResponseWriter, r *http.Requ
 	}
 }
 
+type RegisterUserRequest struct {
+	Email    string `json:"email" validate:"required,email" example:"test@test.ru"`
+	Password string `json:"password" validate:"required,min=8" example:"TestTest123"`
+}
+
+// RegisterUserByEmail godoc
+// @Summary      Register by email and password
+// @Description  Registers a new user by email and password.
+// @Tags         user
+// @Accept       json
+// @Param        body  body  RegisterUserRequest  true  "Registration data"
+// @Success      201   "created"
+// @Failure      400  {object}  http_errors.ResponseError
+// @Failure      500  {object}  http_errors.ResponseError
+// @Router       /user/register/email [post]
+func (h *UserHandler) RegisterUserByEmail(w http.ResponseWriter, r *http.Request) {
+	var req RegisterUserRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http_errors.SendBadRequest(w, "request body is invalid")
+		logs.Error("failed to decode the request", err)
+		return
+	}
+	if validationErr(w, h.validate, req) {
+		return
+	}
+	err := h.UserAuthenticator.RegisterByEmail(r.Context(), req.Email, req.Password)
+	if err != nil {
+		http_errors.SendWrapped(w, err)
+		logs.Error("failed to register the user", err)
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
+}
+
 type AuthenticateUserRequest struct {
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required,min=8"`
+	Email    string `json:"email" validate:"required,email" example:"test@test.ru"`
+	Password string `json:"password" validate:"required,min=8" example:"TestTest123"`
 }
 
 type AuthenticateUserResponse struct {
 	Token string `json:"token"`
 }
 
+// GetUserTokenByEmail godoc
+// @Summary      Authenticate by email and password
+// @Description  Authenticates a registered user and returns an auth token.
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @Param        body   body        AuthenticateUserRequest     true    "Credentials"
+// @Success      200    {object}    AuthenticateUserResponse
+// @Failure      400    {object}    http_errors.ResponseError
+// @Failure      500    {object}    http_errors.ResponseError
+// @Router       /user/token/email [post]
 func (h *UserHandler) GetUserTokenByEmail(w http.ResponseWriter, r *http.Request) {
 	var req AuthenticateUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -103,35 +149,23 @@ func (h *UserHandler) GetUserTokenByEmail(w http.ResponseWriter, r *http.Request
 	}
 }
 
-type RegisterUserRequest struct {
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required,min=8"`
-}
-
-func (h *UserHandler) RegisterUserByEmail(w http.ResponseWriter, r *http.Request) {
-	var req RegisterUserRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http_errors.SendBadRequest(w, "request body is invalid")
-		logs.Error("failed to decode the request", err)
-		return
-	}
-	if validationErr(w, h.validate, req) {
-		return
-	}
-	err := h.UserAuthenticator.RegisterByEmail(r.Context(), req.Email, req.Password)
-	if err != nil {
-		http_errors.SendWrapped(w, err)
-		logs.Error("failed to register the user", err)
-		return
-	}
-	w.WriteHeader(http.StatusCreated)
-}
-
 type GetUserInfoResponse struct {
 	ID    uuid.UUID `json:"id"`
 	Email string    `json:"email"`
 }
 
+// GetUserInfo godoc
+// @Summary      Get current user info
+// @Description  Returns info of the user.
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200  {object}  GetUserInfoResponse
+// @Failure      400  {object}  http_errors.ResponseError
+// @Failure      401  {object}  http_errors.ResponseError
+// @Failure      500  {object}  http_errors.ResponseError
+// @Router       /user [get]
 func (h *UserHandler) GetUserInfo(w http.ResponseWriter, r *http.Request) {
 	userID, err := h.UserIDProvider.GetVerifiedUserIDFromRequest(r)
 	if err != nil {

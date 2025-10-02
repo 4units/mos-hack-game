@@ -50,24 +50,25 @@ type UserStorage interface {
 	GetIDAndPassHash(ctx context.Context, email string) (uuid.UUID, []byte, error)
 	CreateAnonymouseUser(ctx context.Context) (uuid.UUID, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (*model.User, error)
+	GetUserRolesByID(ctx context.Context, id uuid.UUID) ([]model.Role, error)
 }
 
-type Deps struct {
+type UserUsecaseDeps struct {
 	TokenProvider TokenProvider
 	UserStorage   UserStorage
 }
 
-type Usecase struct {
-	Deps
+type UserUsecase struct {
+	UserUsecaseDeps
 }
 
-func New(deps Deps) *Usecase {
-	return &Usecase{
-		Deps: deps,
+func New(deps UserUsecaseDeps) *UserUsecase {
+	return &UserUsecase{
+		UserUsecaseDeps: deps,
 	}
 }
 
-func (u *Usecase) GetUserInfo(ctx context.Context, userID uuid.UUID) (*model.User, error) {
+func (u *UserUsecase) GetUserInfo(ctx context.Context, userID uuid.UUID) (*model.User, error) {
 	user, err := u.UserStorage.GetUserByID(ctx, userID)
 	if err != nil {
 		return nil, err
@@ -75,7 +76,7 @@ func (u *Usecase) GetUserInfo(ctx context.Context, userID uuid.UUID) (*model.Use
 	return user, nil
 }
 
-func (u *Usecase) CreateAnonymouseUser(ctx context.Context) (string, error) {
+func (u *UserUsecase) CreateAnonymouseUser(ctx context.Context) (string, error) {
 	userID, err := u.UserStorage.CreateAnonymouseUser(ctx)
 	if err != nil {
 		return "", fmt.Errorf("failed to create anonymous user: %w", err)
@@ -87,7 +88,7 @@ func (u *Usecase) CreateAnonymouseUser(ctx context.Context) (string, error) {
 	return token, nil
 }
 
-func (u *Usecase) RegisterByEmail(ctx context.Context, email, password string) error {
+func (u *UserUsecase) RegisterByEmail(ctx context.Context, email, password string) error {
 	var (
 		hasUpperCaseLetters bool
 		hasLowerCaseLetters bool
@@ -134,7 +135,7 @@ func (u *Usecase) RegisterByEmail(ctx context.Context, email, password string) e
 	return nil
 }
 
-func (u *Usecase) AuthenticateByEmail(ctx context.Context, email, password string) (string, error) {
+func (u *UserUsecase) AuthenticateByEmail(ctx context.Context, email, password string) (string, error) {
 	userID, passHash, err := u.UserStorage.GetIDAndPassHash(ctx, email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -155,4 +156,27 @@ func (u *Usecase) AuthenticateByEmail(ctx context.Context, email, password strin
 		return "", fmt.Errorf("failed to generate user token: %w", err)
 	}
 	return token, nil
+}
+
+func (u *UserUsecase) CheckUserAnyRole(ctx context.Context, userID uuid.UUID, needRoleList []model.Role) error {
+	roles, err := u.UserStorage.GetUserRolesByID(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("failed to get user role by id: %w", err)
+	}
+	hasRole := false
+	for _, needRole := range needRoleList {
+		for _, userRole := range roles {
+			if userRole == needRole {
+				hasRole = true
+				break
+			}
+		}
+		if hasRole {
+			break
+		}
+	}
+	if !hasRole {
+		return model.ErrUserRoleHasNoAccess
+	}
+	return nil
 }

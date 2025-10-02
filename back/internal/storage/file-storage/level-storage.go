@@ -53,7 +53,7 @@ func (l *LevelStorage) GetClosestLowOrDefaultLevel(
 	groupCode model.LineGameLevelGroupCode,
 	num int,
 ) (model.LineGameLevel, error) {
-	return l.GetLevel(ctx, groupCode, num-1)
+	return l.GetLevel(ctx, groupCode, num)
 }
 
 func (l *LevelStorage) GetLevel(
@@ -83,7 +83,7 @@ func (l *LevelStorage) GetNextLevel(
 	if err := l.loadGroup(currentGroupCode); err != nil {
 		return "", 0, err
 	}
-	if currentLevelNum < len(l.levelGroups[currentGroupCode]) {
+	if currentLevelNum+1 < len(l.levelGroups[currentGroupCode]) {
 		return currentGroupCode, currentLevelNum + 1, nil
 	}
 	files, err := os.ReadDir(l.cfg.LevelsDir)

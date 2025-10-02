@@ -28,20 +28,6 @@ type Router struct {
 	RequestTimeout time.Duration `yaml:"request_timeout" default:"5s" env:"REQUEST_TIMEOUT"`
 }
 
-type Balance struct {
-	StartSoftCurrency int `yaml:"start_soft_currency"`
-}
-
-type ItemsPrice struct {
-	LineGameHintPrice int `yaml:"line_game_hint_price"`
-}
-
-type Game struct {
-	Balance    Balance    `yaml:"balance"`
-	LineGame   LineGame   `yaml:"line_game"`
-	ItemsPrice ItemsPrice `yaml:"items_price"`
-}
-
 type Config struct {
 	Host          Host          `yaml:"host"`
 	App           App           `yaml:"app"`

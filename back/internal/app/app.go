@@ -47,7 +47,7 @@ func Run(cfg *config.Config) error {
 	userStorage := postgres.NewUserStorage(pool)
 
 	userUsecase := usecase.New(
-		usecase.Deps{
+		usecase.UserUsecaseDeps{
 			TokenProvider: tokenUsecase,
 			UserStorage:   userStorage,
 		},
@@ -63,26 +63,8 @@ func Run(cfg *config.Config) error {
 
 	lineGameLevelStorage := file_storage.NewLineGameLevelStorage(cfg.Game.LineGame)
 
-	progressStorage := postgres.NewProgressStorage(pool)
+	progressStorage := postgres.NewLineGameProgressStorage(pool)
 	balanceStorage := postgres.NewBalanceStorage(pool)
-
-	var lineGameUsecase = usecase.NewLineGameUsecase(
-		usecase.LineGameUsecaseDeps{
-			LineGameLevelStorage:    lineGameLevelStorage,
-			LineGameProgressStorage: progressStorage,
-			UserBalanceStorage:      balanceStorage,
-		},
-		cfg.Game.LineGame,
-		cfg.Game.ItemsPrice,
-	)
-	lineGameHandler := handler.NewLineGameHandler(
-		handler.LineGameHandlerDeps{
-			LineGameCompleteProcessor: lineGameUsecase,
-			LineGameLevelProvider:     lineGameUsecase,
-			UserIDExtractor:           tokenUsecase,
-			LineGameHintProvider:      lineGameUsecase,
-		},
-	)
 
 	var balanceUsecase = usecase.NewBalanceUsecase(
 		usecase.BalanceUsecaseDeps{
@@ -96,6 +78,42 @@ func Run(cfg *config.Config) error {
 			BalanceProvider: balanceUsecase,
 		},
 	)
+	var lineGameUsecase = usecase.NewLineGameUsecase(
+		usecase.LineGameUsecaseDeps{
+			LineGameLevelStorage:    lineGameLevelStorage,
+			LineGameProgressStorage: progressStorage,
+			BalanceUsecase:          balanceUsecase,
+		},
+		cfg.Game.LineGame,
+		cfg.Game.ItemsPrice,
+	)
+	lineGameHandler := handler.NewLineGameHandler(
+		handler.LineGameHandlerDeps{
+			LineGameCompleteProcessor: lineGameUsecase,
+			LineGameLevelProvider:     lineGameUsecase,
+			UserIDExtractor:           tokenUsecase,
+			LineGameBoosterProvider:   lineGameUsecase,
+		}, cfg.Game.LineGame,
+	)
+
+	quizStorage := postgres.NewQuizStorage(pool)
+
+	quizUsecase := usecase.NewQuizUsecase(
+		usecase.QuizUsecaseDeps{
+			QuizStorage:    quizStorage,
+			UserUsecase:    userUsecase,
+			BalanceUsecase: balanceUsecase,
+		}, cfg.Game.Quiz,
+	)
+
+	quizHandler := handler.NewQuizHandler(
+		handler.QuizHandlerDeps{
+			QuizCompleteProcessor: quizUsecase,
+			QuizProvider:          quizUsecase,
+			NewQuizConsumer:       quizUsecase,
+			UserIDExtractor:       tokenUsecase,
+		}, cfg.Game.Quiz,
+	)
 
 	rt := mux.NewRouter()
 
@@ -106,6 +124,7 @@ func Run(cfg *config.Config) error {
 			UserHandler:     userHandler,
 			LineGameHandler: lineGameHandler,
 			BalanceHandler:  balanceHandler,
+			QuizHandler:     quizHandler,
 		}, cfg.Router,
 	)
 	if err != nil {

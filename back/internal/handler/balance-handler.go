@@ -32,6 +32,18 @@ type GetUserBalanceResponse struct {
 	SoftCurrency int `json:"soft_currency"`
 }
 
+// GetUserBalance godoc
+// @Summary      Get current user balance
+// @Description  Returns balance of the user.
+// @Tags         balance
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200  {object}  GetUserBalanceResponse
+// @Failure      400  {object}  http_errors.ResponseError
+// @Failure      401  {object}  http_errors.ResponseError
+// @Failure      404  {object}  http_errors.ResponseError
+// @Failure      500  {object}  http_errors.ResponseError
+// @Router       /game/balance [get]
 func (h *BalanceHandler) GetUserBalance(w http.ResponseWriter, r *http.Request) {
 	userID, err := h.UserIDExtractor.GetVerifiedUserIDFromRequest(r)
 	if err != nil {

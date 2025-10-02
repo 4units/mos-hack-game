@@ -10,11 +10,12 @@ import (
 type LineGameLevelGroupCode string
 
 type LineGameLevel struct {
-	FieldSize int
-	Start     LineGameLevelCell
-	End       LineGameLevelCell
-	Order     []LineGameLevelCell
-	Blockers  []LineGameLevelCell
+	PassedCount int
+	FieldSize   int
+	Start       LineGameLevelCell
+	End         LineGameLevelCell
+	Order       []LineGameLevelCell
+	Blockers    []LineGameLevelCell
 	// Answer is answers double slice with number-side quality:
 	// 0 - up, 1 - right, 2 - down, 3 - left, 4 - finish, 5 - block
 	Answer [][]int

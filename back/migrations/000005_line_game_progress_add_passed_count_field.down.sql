@@ -1,0 +1,1 @@
+ALTER TABLE line_game_progress DROP COLUMN IF EXISTS passed_count;

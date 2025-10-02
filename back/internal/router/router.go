@@ -18,6 +18,7 @@ type Deps struct {
 	UserHandler     *handler.UserHandler
 	LineGameHandler *handler.LineGameHandler
 	BalanceHandler  *handler.BalanceHandler
+	QuizHandler     *handler.QuizHandler
 	DocsWriter      DocsWriter
 }
 
@@ -40,6 +41,12 @@ func Setup(rt *mux.Router, deps Deps, cfg config.Router) (http.Handler, error) {
 	gameRouter.HandleFunc("/line/level", deps.LineGameHandler.GetUserLevel).Methods(http.MethodGet)
 	gameRouter.HandleFunc("/line/level", deps.LineGameHandler.CompleteLevel).Methods(http.MethodPost)
 	gameRouter.HandleFunc("/line/hint", deps.LineGameHandler.GetLevelHint).Methods(http.MethodGet)
+	gameRouter.HandleFunc("/line/time-stop-booster", deps.LineGameHandler.GetTimeStopBooster).Methods(http.MethodGet)
+
+	gameRouter.HandleFunc("/quiz", deps.QuizHandler.GetQuiz).Methods(http.MethodGet)
+	gameRouter.HandleFunc("/quiz", deps.QuizHandler.AddQuiz).Methods(http.MethodPost)
+	gameRouter.HandleFunc("/quiz", deps.QuizHandler.UpdateQuiz).Methods(http.MethodPut)
+	gameRouter.HandleFunc("/quiz/answer", deps.QuizHandler.AnswerQuiz).Methods(http.MethodPost)
 
 	rt.PathPrefix("/swagger/").Handler(
 		httpSwagger.Handler(

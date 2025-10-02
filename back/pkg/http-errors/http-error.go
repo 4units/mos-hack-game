@@ -14,8 +14,8 @@ type Error struct {
 	ResponseText string
 }
 
-type responseError struct {
-	Error string `json:"error"`
+type ResponseError struct {
+	Error string `json:"error" example:"internal server error"`
 }
 
 func New(text, responseText string, statusCode int) *Error {
@@ -76,7 +76,7 @@ func SendBadRequest(w http.ResponseWriter, text string) {
 
 func getResponseBody(text string) []byte {
 	body, _ := json.Marshal(
-		responseError{
+		ResponseError{
 			Error: text,
 		},
 	)
