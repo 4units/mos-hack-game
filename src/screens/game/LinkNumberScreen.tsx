@@ -350,7 +350,7 @@ const LinkNumberScreen = ({
         <div className="flex w-full max-w-[25rem] flex-col gap-[40px] text-[var(--color-on-surface)]">
           <div className="flex items-center justify-between">
             <BaseHeader onBack={onBack} />
-            <PlatformNumber number={currentLevel} />
+            <PlatformNumber number={demo ? 10 : currentLevel} />
           </div>
 
           <div className={'flex flex-row items-center gap-4'}>
