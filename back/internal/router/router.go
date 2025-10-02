@@ -19,6 +19,7 @@ type Deps struct {
 	LineGameHandler *handler.LineGameHandler
 	BalanceHandler  *handler.BalanceHandler
 	QuizHandler     *handler.QuizHandler
+	ConfigHandler   *handler.ConfigHandler
 	DocsWriter      DocsWriter
 }
 
@@ -47,6 +48,17 @@ func Setup(rt *mux.Router, deps Deps, cfg config.Router) (http.Handler, error) {
 	gameRouter.HandleFunc("/quiz", deps.QuizHandler.AddQuiz).Methods(http.MethodPost)
 	gameRouter.HandleFunc("/quiz", deps.QuizHandler.UpdateQuiz).Methods(http.MethodPut)
 	gameRouter.HandleFunc("/quiz/answer", deps.QuizHandler.AnswerQuiz).Methods(http.MethodPost)
+
+	configRouter := rt.PathPrefix("/config").Subrouter()
+
+	configRouter.HandleFunc("/quiz", deps.ConfigHandler.GetQuizConfig).Methods(http.MethodGet)
+	configRouter.HandleFunc("/quiz", deps.ConfigHandler.UpdateQuizConfig).Methods(http.MethodPut)
+	configRouter.HandleFunc("/line", deps.ConfigHandler.GetLineGameConfig).Methods(http.MethodGet)
+	configRouter.HandleFunc("/line", deps.ConfigHandler.UpdateLineGameConfig).Methods(http.MethodPut)
+	configRouter.HandleFunc("/balance", deps.ConfigHandler.GetBalanceGameConfig).Methods(http.MethodGet)
+	configRouter.HandleFunc("/balance", deps.ConfigHandler.UpdateBalanceGameConfig).Methods(http.MethodPut)
+	configRouter.HandleFunc("/price", deps.ConfigHandler.GetPriceGameConfig).Methods(http.MethodGet)
+	configRouter.HandleFunc("/price", deps.ConfigHandler.UpdatePriceGameConfig).Methods(http.MethodPut)
 
 	rt.PathPrefix("/swagger/").Handler(
 		httpSwagger.Handler(

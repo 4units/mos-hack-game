@@ -46,23 +46,29 @@ type LineLevelProgressStorage interface {
 	AddUserLineGameLevel(ctx context.Context, id uuid.UUID, groupCode model.LineGameLevelGroupCode, levelNum int) error
 }
 
+type LineGameConifgProvider interface {
+	LineGameConifg() *config.LineGame
+}
+
+type PriceConifgProvider interface {
+	PriceConifg() *config.ItemsPrice
+}
+
 type LineGameUsecaseDeps struct {
 	LineGameLevelStorage    LineLevelStorage
 	LineGameProgressStorage LineLevelProgressStorage
 	BalanceUsecase          *BalanceUsecase
+	LineGameConifgProvider
+	PriceConifgProvider
 }
 type LineGameUsecase struct {
 	LineGameUsecaseDeps
-	lineGameCfg config.LineGame
-	pricesCfg   config.ItemsPrice
 }
 
 func NewLineGameUsecase(
 	deps LineGameUsecaseDeps,
-	lineGameCfg config.LineGame,
-	pricesCfg config.ItemsPrice,
 ) *LineGameUsecase {
-	return &LineGameUsecase{LineGameUsecaseDeps: deps, lineGameCfg: lineGameCfg, pricesCfg: pricesCfg}
+	return &LineGameUsecase{LineGameUsecaseDeps: deps}
 }
 
 func (l *LineGameUsecase) GetUserLevel(ctx context.Context, userID uuid.UUID) (model.LineGameLevel, error) {
@@ -114,7 +120,7 @@ func (l *LineGameUsecase) TryCompleteUserLevel(
 		return model.LineGameReward{}, fmt.Errorf("failed to get user level: %w", err)
 	}
 
-	if l.lineGameCfg.CheckAnswer {
+	if l.LineGameConifg().CheckAnswer {
 		level, err := l.LineGameLevelStorage.GetLevel(ctx, groupCode, levelNum)
 		if err != nil {
 			if errors.Is(err, model.ErrLineGameNotExistsLevelInStorage) {
@@ -181,9 +187,9 @@ func (l *LineGameUsecase) TryCompleteUserLevel(
 		return model.LineGameReward{}, fmt.Errorf("failed to update next level: %w", err)
 	}
 
-	rewardCfg := l.lineGameCfg.RewardsConditions[len(l.lineGameCfg.RewardsConditions)-1].Reward
-	for _, condition := range l.lineGameCfg.RewardsConditions {
-		if condition.MaxTime > timeSinceStart {
+	rewardCfg := l.LineGameConifg().RewardsConditions[len(l.LineGameConifg().RewardsConditions)-1].Reward
+	for _, condition := range l.LineGameConifg().RewardsConditions {
+		if condition.MaxTime > timeSinceStart.Seconds() {
 			rewardCfg = condition.Reward
 			break
 		}
@@ -201,14 +207,14 @@ func (l *LineGameUsecase) GetLevelHint(ctx context.Context, userID uuid.UUID) ([
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user level: %w", err)
 	}
-	if err = l.BalanceUsecase.TrySpendSoftCurrency(ctx, userID, l.pricesCfg.LineGameHintPrice); err != nil {
+	if err = l.BalanceUsecase.TrySpendSoftCurrency(ctx, userID, l.PriceConifg().LineGameHintPrice); err != nil {
 		return nil, fmt.Errorf("failed to spend soft currency: %w", err)
 	}
 	return level.Answer, nil
 }
 
 func (l *LineGameUsecase) GetTimeStopBooster(ctx context.Context, userID uuid.UUID) error {
-	if err := l.BalanceUsecase.TrySpendSoftCurrency(ctx, userID, l.pricesCfg.LineGameHintPrice); err != nil {
+	if err := l.BalanceUsecase.TrySpendSoftCurrency(ctx, userID, l.PriceConifg().LineGameHintPrice); err != nil {
 		return fmt.Errorf("failed to spend soft currency: %w", err)
 	}
 	return nil

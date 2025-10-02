@@ -8,17 +8,17 @@ authorization:
 host:
   http_port: 8081
 game:
+  levels_dir: "levels"
   line_game:
     check_answer: false
-    levels_dir: "levels"
     rewards_conditions:
-      - max_time: 10s
+      - max_time: 10
         reward:
           soft_currency: 100
-      - max_time: 40s
+      - max_time: 40
         reward:
           soft_currency: 60
-      - max_time: 90s
+      - max_time: 90
         reward:
           soft_currency: 30
   quiz:

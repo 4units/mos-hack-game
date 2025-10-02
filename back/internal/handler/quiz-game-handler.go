@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"encoding/json"
-	"github.com/4units/mos-hack-game/back/config"
 	"github.com/4units/mos-hack-game/back/internal/model"
 	http_errors "github.com/4units/mos-hack-game/back/pkg/http-errors"
 	logs "github.com/4units/mos-hack-game/back/pkg/logging"
@@ -40,14 +39,12 @@ type QuizHandlerDeps struct {
 
 type QuizHandler struct {
 	QuizHandlerDeps
-	cfg      config.Quiz
 	validate *validator.Validate
 }
 
-func NewQuizHandler(deps QuizHandlerDeps, cfg config.Quiz) *QuizHandler {
+func NewQuizHandler(deps QuizHandlerDeps) *QuizHandler {
 	return &QuizHandler{
 		QuizHandlerDeps: deps,
-		cfg:             cfg,
 		validate:        validator.New(),
 	}
 }

@@ -38,19 +38,23 @@ type QuizStorage interface {
 	) error
 }
 
+type QuizConfigProvider interface {
+	QuizConfig() *config.Quiz
+}
+
 type QuizUsecaseDeps struct {
 	QuizStorage    QuizStorage
 	UserUsecase    *UserUsecase
 	BalanceUsecase *BalanceUsecase
+	QuizConfigProvider
 }
 
 type QuizUsecase struct {
 	QuizUsecaseDeps
-	cfg config.Quiz
 }
 
-func NewQuizUsecase(deps QuizUsecaseDeps, cfg config.Quiz) *QuizUsecase {
-	return &QuizUsecase{QuizUsecaseDeps: deps, cfg: cfg}
+func NewQuizUsecase(deps QuizUsecaseDeps) *QuizUsecase {
+	return &QuizUsecase{QuizUsecaseDeps: deps}
 }
 
 func (q *QuizUsecase) TryCompleteQuiz(ctx context.Context, userID, quizID uuid.UUID, answer int) (int, error) {
@@ -61,7 +65,7 @@ func (q *QuizUsecase) TryCompleteQuiz(ctx context.Context, userID, quizID uuid.U
 	if quiz.CorrectAnswer != answer {
 		return 0, ErrNotCorrectAnswer
 	}
-	softCurrencyReward := q.cfg.SoftCurrencyReward
+	softCurrencyReward := q.QuizConfig().SoftCurrencyReward
 	if err = q.BalanceUsecase.AddSoftCurrency(ctx, userID, softCurrencyReward); err != nil {
 		return 0, err
 	}

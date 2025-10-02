@@ -38,14 +38,22 @@ type lineGameCell struct {
 	X int `json:"x"`
 	Y int `json:"y"`
 }
-
-type LevelStorage struct {
-	cfg         config.LineGame
-	levelGroups map[model.LineGameLevelGroupCode][]model.LineGameLevel
+type LineGameConifgProvider interface {
+	LineGameConifg() *config.LineGame
 }
 
-func NewLineGameLevelStorage(cfg config.LineGame) *LevelStorage {
-	return &LevelStorage{cfg: cfg, levelGroups: make(map[model.LineGameLevelGroupCode][]model.LineGameLevel)}
+type LevelStorage struct {
+	LineGameConifgProvider
+	levelGroups   map[model.LineGameLevelGroupCode][]model.LineGameLevel
+	lineLevelsDir string
+}
+
+func NewLineGameLevelStorage(lineGameConfigProvider LineGameConifgProvider, lineLevelsDir string) *LevelStorage {
+	return &LevelStorage{
+		LineGameConifgProvider: lineGameConfigProvider,
+		levelGroups:            make(map[model.LineGameLevelGroupCode][]model.LineGameLevel),
+		lineLevelsDir:          lineLevelsDir,
+	}
 }
 
 func (l *LevelStorage) GetClosestLowOrDefaultLevel(
@@ -86,7 +94,7 @@ func (l *LevelStorage) GetNextLevel(
 	if currentLevelNum+1 < len(l.levelGroups[currentGroupCode]) {
 		return currentGroupCode, currentLevelNum + 1, nil
 	}
-	files, err := os.ReadDir(l.cfg.LevelsDir)
+	files, err := os.ReadDir(l.lineLevelsDir)
 	if err != nil {
 		return "", 0, fmt.Errorf("failed to read dir with levels: %w", err)
 	}
@@ -99,7 +107,7 @@ func (l *LevelStorage) GetNextLevel(
 		if !strings.HasSuffix(fileName, ".json") {
 			continue
 		}
-		filePath := filepath.Join(l.cfg.LevelsDir, fileName)
+		filePath := filepath.Join(l.lineLevelsDir, fileName)
 		rawFile, err := os.ReadFile(filePath)
 		if err != nil {
 			return "", 0, fmt.Errorf("failed to read file %s: %w", filePath, err)
@@ -126,7 +134,7 @@ func (l *LevelStorage) GetNextLevel(
 }
 
 func (l *LevelStorage) GetStartGroupCode(_ context.Context) (model.LineGameLevelGroupCode, error) {
-	files, err := os.ReadDir(l.cfg.LevelsDir)
+	files, err := os.ReadDir(l.lineLevelsDir)
 	if err != nil {
 		return "", err
 	}
@@ -138,7 +146,7 @@ func (l *LevelStorage) GetStartGroupCode(_ context.Context) (model.LineGameLevel
 		if !strings.HasSuffix(fileName, ".json") {
 			continue
 		}
-		filePath := filepath.Join(l.cfg.LevelsDir, fileName)
+		filePath := filepath.Join(l.lineLevelsDir, fileName)
 		rawFile, err := os.ReadFile(filePath)
 		if err != nil {
 			return "", fmt.Errorf("failed to read file %s: %w", filePath, err)
@@ -158,7 +166,7 @@ func (l *LevelStorage) GetStartGroupCode(_ context.Context) (model.LineGameLevel
 
 func (l *LevelStorage) loadGroup(groupCode model.LineGameLevelGroupCode) error {
 	if _, ok := l.levelGroups[groupCode]; !ok {
-		filePath := fmt.Sprintf("%s/%s.json", l.cfg.LevelsDir, groupCode)
+		filePath := fmt.Sprintf("%s/%s.json", l.lineLevelsDir, groupCode)
 		if _, err := os.Stat(filePath); err != nil {
 			if os.IsNotExist(err) {
 				return fmt.Errorf("stat file %s error: %w", filePath, ErrGroupFileDoesNotExist)

@@ -16,19 +16,22 @@ type BalanceStorage interface {
 	UpdateSoftCurrency(ctx context.Context, userID uuid.UUID, count int) error
 }
 
+type BalanceConfigProvider interface {
+	BalanceConfig() *config.Balance
+}
+
 type BalanceUsecaseDeps struct {
 	BalanceStorage BalanceStorage
+	BalanceConfigProvider
 }
 
 type BalanceUsecase struct {
 	BalanceUsecaseDeps
-	cfg config.Balance
 }
 
-func NewBalanceUsecase(deps BalanceUsecaseDeps, cfg config.Balance) *BalanceUsecase {
+func NewBalanceUsecase(deps BalanceUsecaseDeps) *BalanceUsecase {
 	return &BalanceUsecase{
 		BalanceUsecaseDeps: deps,
-		cfg:                cfg,
 	}
 }
 
@@ -38,7 +41,7 @@ func (b *BalanceUsecase) GetUserBalance(ctx context.Context, userID uuid.UUID) (
 		if !errors.Is(err, model.ErrBalanceNotExists) {
 			return model.UserBalance{}, fmt.Errorf("failed to get balance: %w", err)
 		}
-		balance = model.UserBalance{SoftCurrency: b.cfg.StartSoftCurrency}
+		balance = model.UserBalance{SoftCurrency: b.BalanceConfig().StartSoftCurrency}
 		if err = b.BalanceStorage.CreateUserBalance(ctx, userID, balance); err != nil {
 			return model.UserBalance{}, fmt.Errorf("failed to update balance: %w", err)
 		}
@@ -79,7 +82,7 @@ func (b *BalanceUsecase) GetSoftCurrency(ctx context.Context, userID uuid.UUID) 
 		if !errors.Is(err, model.ErrBalanceNotExists) {
 			return 0, fmt.Errorf("failed to get balance: %w", err)
 		}
-		startSoftCurrency := b.cfg.StartSoftCurrency
+		startSoftCurrency := b.BalanceConfig().StartSoftCurrency
 		balance := model.UserBalance{SoftCurrency: startSoftCurrency}
 		if err = b.BalanceStorage.CreateUserBalance(ctx, userID, balance); err != nil {
 			return 0, fmt.Errorf("failed to update balance: %w", err)

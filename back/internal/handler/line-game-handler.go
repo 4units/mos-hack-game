@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"encoding/json"
-	"github.com/4units/mos-hack-game/back/config"
 	"github.com/4units/mos-hack-game/back/internal/model"
 	http_errors "github.com/4units/mos-hack-game/back/pkg/http-errors"
 	logs "github.com/4units/mos-hack-game/back/pkg/logging"
@@ -36,19 +35,18 @@ type LineGameHandlerDeps struct {
 	LineGameCompleteProcessor LineGameCompleteProcessor
 	UserIDExtractor           UserIDExtractor
 	LineGameBoosterProvider   LineGameBoosterProvider
+	LineGameConifgProvider
 }
 
 type LineGameHandler struct {
 	LineGameHandlerDeps
-	cfg      config.LineGame
 	validate *validator.Validate
 }
 
-func NewLineGameHandler(deps LineGameHandlerDeps, cfg config.LineGame) *LineGameHandler {
+func NewLineGameHandler(deps LineGameHandlerDeps) *LineGameHandler {
 	return &LineGameHandler{
 		LineGameHandlerDeps: deps,
 		validate:            validator.New(),
-		cfg:                 cfg,
 	}
 }
 
@@ -152,7 +150,7 @@ func (l *LineGameHandler) CompleteLevel(w http.ResponseWriter, r *http.Request) 
 	if validationErr(w, l.validate, req) {
 		return
 	}
-	if l.cfg.CheckAnswer {
+	if l.LineGameConifg().CheckAnswer {
 		answerRowsCount := len(req.Answer)
 		for _, row := range req.Answer {
 			if len(row) != answerRowsCount {
