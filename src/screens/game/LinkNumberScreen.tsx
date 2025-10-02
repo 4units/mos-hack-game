@@ -59,7 +59,7 @@ const LinkNumberScreen = ({
       <div className={'flex flex-row justify-between'}>
         <PlatformNumber number={1} />
         <StarsCount ariaLabel={'Количество звёзд'} number={2150} />
-        <StarsCount ariaLabel={'Количество звёзд'} label={'03:12'} icon={<ClockIcon />} />
+        <StarsCount ariaLabel={'Время'} label={'03:12'} icon={<ClockIcon />} />
       </div>
       <section className="flex justify-center">
         <LinkNumber level={level} padding={padding} />

@@ -5,6 +5,8 @@ import PlatformNumber from '../components/PlatformNumber.tsx';
 import StarsCount from '../components/StarsCount.tsx';
 import { useState } from 'react';
 import StarsQuizBottomSheet from './game/components/StarsQuizBottomSheet';
+import useStarsBalance from '../hooks/useStarsBalance';
+import { useStarsStore } from '../stores/starsStore';
 
 type GameScreenProps = {
   onShowGifts: () => void;
@@ -13,14 +15,11 @@ type GameScreenProps = {
   score?: number;
 };
 
-export const GameScreen = ({
-  onShowGifts,
-  onShowFaq,
-  onStartLinkNumber,
-  score: initialScore = 22150,
-}: GameScreenProps) => {
-  const [score, setScore] = useState(initialScore);
+export const GameScreen = ({ onShowGifts, onShowFaq, onStartLinkNumber }: GameScreenProps) => {
   const [isStarsOpen, setIsStarsOpen] = useState(false);
+  const balance = useStarsStore((state) => state.balance);
+  const setBalance = useStarsStore((state) => state.setBalance);
+  useStarsBalance();
 
   return (
     <>
@@ -30,7 +29,7 @@ export const GameScreen = ({
             <div className="flex items-center justify-center gap-4" aria-label="Статус игры">
               <PlatformNumber number={2} />
               <StarsCount
-                number={score}
+                number={balance}
                 onClick={() => setIsStarsOpen(true)}
                 ariaLabel="Количество звёзд"
               />
@@ -69,8 +68,8 @@ export const GameScreen = ({
       <StarsQuizBottomSheet
         isOpen={isStarsOpen}
         onClose={() => setIsStarsOpen(false)}
-        score={score}
-        onScoreChange={setScore}
+        score={balance}
+        onScoreChange={setBalance}
       />
     </>
   );
