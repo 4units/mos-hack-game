@@ -4,15 +4,7 @@ import { LinkNumber, type LinkNumberHandle } from './kit/link-number/LinkNumber'
 import type { LevelFormat } from './kit/link-number/types';
 import StarsCount from '../../components/StarsCount.tsx';
 import { ClockIcon, LampIcon, PauseIcon } from '../../components/icons/index.ts';
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type CSSProperties,
-  type ReactNode,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStarsStore } from '../../stores/starsStore.ts';
 import useCompleteLineLevel from '../../hooks/useCompleteLineLevel.ts';
 import { formatDuration } from '../../utils/format';
@@ -33,38 +25,10 @@ type LinkNumberScreenProps = {
   onBack: () => void;
   level: LevelFormat;
   padding?: number;
-  demo?: boolean;
   onStartGame?: () => void;
 };
 
-type BubbleArrow = 'right' | 'top-right' | 'bottom-left' | 'bottom-right';
-
-const Bubble = ({
-  children,
-  style,
-  arrow = 'bottom-left',
-}: {
-  children: ReactNode;
-  style?: CSSProperties;
-  arrow?: BubbleArrow;
-}) => (
-  <div
-    className={`speech-bubble px-[8px] h-[50px] flex items-center justify-center arrow-${arrow}`}
-    style={style}
-  >
-    <span className="text-[var(--color-violet)] text-[14px] font-medium text-center leading-tight">
-      {children}
-    </span>
-  </div>
-);
-
-const LinkNumberScreen = ({
-  onBack,
-  level,
-  padding = 12,
-  demo = false,
-  onStartGame,
-}: LinkNumberScreenProps) => {
+const LinkNumberScreen = ({ onBack, level, padding = 12 }: LinkNumberScreenProps) => {
   const queryClient = useQueryClient();
   const balance = useStarsStore((state) => state.balance);
   const currentLevel = useLevelStore((state) => state.currentLevel);
@@ -276,7 +240,6 @@ const LinkNumberScreen = ({
   ]);
 
   const handleComplete = useCallback(() => {
-    if (demo) return;
     if (completionGuardRef.current) return;
 
     completionGuardRef.current = true;
@@ -313,7 +276,7 @@ const LinkNumberScreen = ({
         setIsStopTimeActive(false);
         setEarnedStars(null);
       });
-  }, [completeLevelAsync, demo, elapsedSeconds, finishHint, isHintProcessing]);
+  }, [completeLevelAsync, elapsedSeconds, finishHint, isHintProcessing]);
 
   const formattedTime = useMemo(() => formatDuration(elapsedSeconds), [elapsedSeconds]);
   const hintCountdownLabel = useMemo(
@@ -350,16 +313,12 @@ const LinkNumberScreen = ({
         <div className="flex w-full max-w-[25rem] flex-col gap-[40px] text-[var(--color-on-surface)]">
           <div className="flex items-center justify-between">
             <BaseHeader onBack={onBack} />
-            <PlatformNumber number={demo ? 10 : currentLevel} />
+            <PlatformNumber number={currentLevel} />
           </div>
 
           <div className={'flex flex-row items-center gap-4'}>
-            <StarsCount ariaLabel={'Количество звёзд'} number={demo ? 2150 : balance} />
-            <StarsCount
-              ariaLabel={'Время'}
-              label={demo ? '00:50' : timerLabel}
-              icon={demo ? <ClockIcon /> : timerIcon}
-            />
+            <StarsCount ariaLabel={'Количество звёзд'} number={balance} />
+            <StarsCount ariaLabel={'Время'} label={timerLabel} icon={timerIcon} />
           </div>
 
           <section className="flex justify-center">
@@ -370,8 +329,6 @@ const LinkNumberScreen = ({
               onComplete={handleComplete}
               onStopTime={handleRequestTimeStop}
               onShowHint={handleRequestHint}
-              stopTimeLabel={demo ? '3' : '3'}
-              hintLabel={demo ? '1' : '3'}
               stopTimeDisabled={stopDisabled}
               hintDisabled={hintDisabled}
               disabled={isBoardDisabled}
@@ -380,48 +337,6 @@ const LinkNumberScreen = ({
             />
           </section>
         </div>
-
-        {demo && (
-          <div
-            className="tutorial-overlay absolute inset-0 z-10 flex flex-col items-center justify-end"
-            aria-label="Как играть — подсказки"
-          >
-            {/* Tips layout container */}
-            <div
-              className="absolute inset-0 mx-auto w-full max-w-[25rem] pointer-events-none"
-              style={{ position: 'absolute' }}
-            >
-              {/* <Bubble style={{ top: 16, right: 120, maxWidth: 185 }} arrow="right">
-                Популярные вопросы
-              </Bubble>
-              <Bubble style={{ top: 72, right: 10, maxWidth: 170 }} arrow="top-right">
-                Ваши достижения и призы
-              </Bubble> */}
-              <Bubble style={{ top: 45, left: 30, maxWidth: 170 }} arrow="bottom-left">
-                Получайте звёзды
-              </Bubble>
-              <Bubble style={{ top: 537, left: 13, maxWidth: 170 }} arrow="bottom-left">
-                Обмен звёзд на блок времени или подсказку
-              </Bubble>
-              {/* <Bubble style={{ top: 525, right: 10, maxWidth: 170 }} arrow="bottom-right">
-                Подсказка следующих шагов
-              </Bubble>
-              <Bubble style={{ top: 655, left: 64, maxWidth: 170 }} arrow="top-right">
-                Блокировка времени на платформе
-              </Bubble> */}
-            </div>
-
-            <div className="w-full max-w-[25rem] px-[26px] pb-6">
-              <button
-                type="button"
-                className="w-full rounded-[13px] border-0 bg-[var(--color-violet)] px-4 py-3"
-                onClick={onStartGame}
-              >
-                <span className="font-medium text-white text-1">Играть</span>
-              </button>
-            </div>
-          </div>
-        )}
       </main>
 
       <LinkNumberBoostersModal

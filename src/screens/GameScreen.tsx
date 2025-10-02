@@ -27,7 +27,7 @@ export const GameScreen = ({ onShowGifts, onShowFaq, onStartLinkNumber }: GameSc
   return (
     <>
       <main className="main-bg flex min-h-screen bg-[var(--color-surface)] justify-center">
-        <div className="flex w-full max-w-[25rem] flex-col gap-7 justify-between text-[var(--color-on-surface)]">
+        <div className="flex w-full max-w-[25rem] flex-col gap-7 text-[var(--color-on-surface)]">
           <header className="flex items-center justify-between gap-4">
             <div className="flex items-center justify-center gap-4" aria-label="Статус игры">
               <PlatformNumber number={currentLevel} />
@@ -55,16 +55,19 @@ export const GameScreen = ({ onShowGifts, onShowFaq, onStartLinkNumber }: GameSc
             draggable={false}
           />
 
-          <section className="flex justify-center" aria-label="Панель управления">
+          <div
+            className="fixed inset-x-0 bottom-0 z-20 flex justify-center px-4 pb-6"
+            aria-label="Панель управления"
+          >
             <button
               onClick={onStartLinkNumber}
               type="button"
-              className="button-blur w-full"
+              className="button-blur w-full max-w-[25rem]"
               aria-label={'Пройти платформу!'}
             >
               <span className="text-[var(--color-raspberry)]">Пройти платформу!</span>
             </button>
-          </section>
+          </div>
         </div>
       </main>
 

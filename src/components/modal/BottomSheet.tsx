@@ -90,7 +90,7 @@ const BottomSheet = ({ isOpen, onClose, labelledBy, children }: BottomSheetProps
 
       {/* Sheet container */}
       <div className={sheetWrapperClassName}>
-        <div className="mx-auto w-full rounded-t-[20px] bg-[var(--color-lily)] py-[20px] px-[26px]  text-[var(--color-on-surface)]">
+        <div className="mx-auto w-full max-h-[80vh] overflow-y-auto rounded-t-[20px] bg-[var(--color-lily)] py-[20px] px-[26px] text-[var(--color-on-surface)]">
           {children}
         </div>
       </div>
