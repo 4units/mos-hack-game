@@ -239,17 +239,16 @@ const LinkNumberScreen = ({
     }, 1000);
   }, [solutionPath, isHintProcessing, isStopTimeActive, finishHint]);
 
-  const handleConfirmTimeStop = useCallback(async () => {
+  const handleConfirmTimeStop = useCallback(() => {
     if (isStopTimeActive || isHintProcessing || isTimeStopSpending) return;
 
-    try {
-      await spendTimeStopBoosterAsync();
-      handleCloseBoosters();
-      handleCloseTimeModal();
-      activateTimeStop();
-    } catch (error) {
+    handleCloseBoosters();
+    handleCloseTimeModal();
+    activateTimeStop();
+
+    void spendTimeStopBoosterAsync().catch((error) => {
       console.error(error);
-    }
+    });
   }, [
     handleCloseBoosters,
     handleCloseTimeModal,
@@ -260,17 +259,16 @@ const LinkNumberScreen = ({
     spendTimeStopBoosterAsync,
   ]);
 
-  const handleConfirmHint = useCallback(async () => {
+  const handleConfirmHint = useCallback(() => {
     if (isHintProcessing || isHintSpending) return;
 
-    try {
-      await spendHintBoosterAsync();
-      handleCloseBoosters();
-      handleCloseHintModal();
-      startHintSequence();
-    } catch (error) {
+    handleCloseBoosters();
+    handleCloseHintModal();
+    startHintSequence();
+
+    void spendHintBoosterAsync().catch((error) => {
       console.error(error);
-    }
+    });
   }, [
     handleCloseBoosters,
     handleCloseHintModal,
@@ -344,10 +342,10 @@ const LinkNumberScreen = ({
     });
   }, [queryClient, resetCompleteMutation]);
 
-  const isBoardDisabled =
-    isCompleting || isHintProcessing || isVictoryOpen || isTimeStopSpending || isHintSpending;
-  const stopDisabled = isBoardDisabled || isStopTimeActive;
-  const hintDisabled = isBoardDisabled || !solutionPath?.length;
+  const isInteractionLocked = isCompleting || isHintProcessing || isVictoryOpen;
+  const isBoardDisabled = isInteractionLocked;
+  const stopDisabled = isInteractionLocked || isStopTimeActive || isTimeStopSpending;
+  const hintDisabled = isInteractionLocked || !solutionPath?.length || isHintSpending;
 
   return (
     <>

@@ -20,7 +20,7 @@ type QuizQuestion = {
   infoLink?: string;
 };
 
-const IDLE_MESSAGE = 'Правильно отвечайте на наши вопросы и получайте 50 звёзд. Это ещё и полезно)';
+const IDLE_MESSAGE = 'Правильно отвечайте на наши вопросы и получайте звёзды. Это ещё и полезно)';
 
 const StarsQuizBottomSheet = ({
   isOpen,
