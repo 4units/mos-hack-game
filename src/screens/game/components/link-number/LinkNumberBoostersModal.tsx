@@ -15,7 +15,7 @@ type LinkNumberBoostersModalProps = {
 };
 
 const DEFAULT_HINT_COST = 50;
-const DEFAULT_TIME_COST = 200;
+const DEFAULT_TIME_COST = 30;
 
 const LinkNumberBoostersModal = ({
   isOpen,

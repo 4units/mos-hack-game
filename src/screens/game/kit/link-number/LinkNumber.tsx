@@ -465,7 +465,7 @@ export const LinkNumber = forwardRef<LinkNumberHandle, Props>(
             bagDisabled={bagDisabled}
           />
         )}
-        <div className="absolute flex w-full justify-center bottom-0 left-0 right-0 z-0">
+        <div className="flex w-full justify-center bottom-0 left-0 right-0 z-0">
           <img
             draggable={false}
             src={platformImg}
