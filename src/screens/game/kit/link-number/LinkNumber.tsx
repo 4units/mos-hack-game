@@ -26,6 +26,7 @@ type Props = {
   onComplete?: () => void;
   onStopTime?: () => void;
   onShowHint?: () => void;
+  onBack?: () => void;
   stopTimeLabel?: ReactNode;
   hintLabel?: ReactNode;
   stopTimeDisabled?: boolean;
@@ -118,6 +119,7 @@ export const LinkNumber = forwardRef<LinkNumberHandle, Props>(
       onComplete,
       onStopTime,
       onShowHint,
+      onBack,
       stopTimeLabel,
       hintLabel,
       stopTimeDisabled = false,
@@ -444,6 +446,7 @@ export const LinkNumber = forwardRef<LinkNumberHandle, Props>(
           <div className="relative flex items-center justify-center flex-col gap-[20px] z-1 mt-10">
             <h3 className="text-[var(--color-raspberry)]">Вы прошли!</h3>
             <button
+              onClick={onBack}
               type="button"
               className="button-blur w-full"
               aria-label={'На следующую платформу'}

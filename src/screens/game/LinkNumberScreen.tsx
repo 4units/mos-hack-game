@@ -75,7 +75,6 @@ const LinkNumberScreen = ({
   const [hintCountdown, setHintCountdown] = useState(0);
   const [isVictoryOpen, setIsVictoryOpen] = useState(false);
   const [completedSeconds, setCompletedSeconds] = useState<number | null>(null);
-  const [completedLevelNumber, setCompletedLevelNumber] = useState<number | null>(null);
   const timerIntervalRef = useRef<number | null>(null);
   const resumeAfterHintRef = useRef(false);
   const hintCountdownIntervalRef = useRef<number | null>(null);
@@ -97,7 +96,6 @@ const LinkNumberScreen = ({
     setHintCountdown(0);
     setIsVictoryOpen(false);
     setCompletedSeconds(null);
-    setCompletedLevelNumber(null);
     completionGuardRef.current = false;
     resetCompleteMutation();
     if (hintCountdownIntervalRef.current) {
@@ -203,9 +201,6 @@ const LinkNumberScreen = ({
       hintCountdownIntervalRef.current = null;
     }
 
-    const levelDisplayNumber = demo ? 5 : currentLevel;
-    setCompletedLevelNumber(levelDisplayNumber);
-
     const timeSinceStart = elapsedSeconds;
 
     if (timerIntervalRef.current) {
@@ -226,7 +221,7 @@ const LinkNumberScreen = ({
         setCompletedSeconds(null);
         setIsStopTimeActive(false);
       });
-  }, [completeLevelAsync, currentLevel, demo, elapsedSeconds, finishHint, isHintProcessing]);
+  }, [completeLevelAsync, demo, elapsedSeconds, finishHint, isHintProcessing]);
 
   const formattedTime = useMemo(() => formatDuration(elapsedSeconds), [elapsedSeconds]);
   const hintCountdownLabel = useMemo(
@@ -243,15 +238,13 @@ const LinkNumberScreen = ({
   const handleVictoryDismiss = useCallback(() => {
     setIsVictoryOpen(false);
     setCompletedSeconds(null);
-    setCompletedLevelNumber(null);
     completionGuardRef.current = false;
     resetCompleteMutation();
     void queryClient.invalidateQueries({
       queryKey: LINK_NUMBER_LEVEL_QUERY_KEY,
       refetchType: 'inactive',
     });
-    onBack();
-  }, [onBack, queryClient, resetCompleteMutation]);
+  }, [queryClient, resetCompleteMutation]);
 
   const isBoardDisabled = isCompleting || isHintProcessing || isVictoryOpen;
   const stopDisabled = isBoardDisabled;
@@ -296,6 +289,7 @@ const LinkNumberScreen = ({
               stopTimeDisabled={stopDisabled}
               hintDisabled={hintDisabled}
               disabled={isBoardDisabled}
+              onBack={onBack}
             />
           </section>
         </div>
@@ -346,9 +340,7 @@ const LinkNumberScreen = ({
       <LinkNumberVictoryBottomSheet
         isOpen={isVictoryOpen}
         onClose={handleVictoryDismiss}
-        onNextLevel={handleVictoryDismiss}
         elapsedSeconds={completedSeconds}
-        currentLevel={completedLevelNumber ?? (demo ? 5 : currentLevel)}
       />
     </>
   );
