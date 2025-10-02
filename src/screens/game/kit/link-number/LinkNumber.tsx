@@ -5,6 +5,7 @@ import type { Cell, LevelFormat } from './types';
 import platformImg from '../../../../assets/platform.png';
 import StarsCount from '../../../../components/StarsCount.tsx';
 import { BagIcon, LampIcon, LockIcon } from '../../../../components/icons';
+
 type Props = {
   level: LevelFormat;
   cellWidth?: number;
