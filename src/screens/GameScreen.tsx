@@ -55,16 +55,19 @@ export const GameScreen = ({ onShowGifts, onShowFaq, onStartLinkNumber }: GameSc
             draggable={false}
           />
 
-          <section className="flex justify-center" aria-label="Панель управления">
+          <div
+            className="fixed inset-x-0 bottom-0 z-20 flex justify-center px-4 pb-6"
+            aria-label="Панель управления"
+          >
             <button
               onClick={onStartLinkNumber}
               type="button"
-              className="button-blur w-full"
+              className="button-blur w-full max-w-[25rem]"
               aria-label={'Пройти платформу!'}
             >
               <span className="text-[var(--color-raspberry)]">Пройти платформу!</span>
             </button>
-          </section>
+          </div>
         </div>
       </main>
 
