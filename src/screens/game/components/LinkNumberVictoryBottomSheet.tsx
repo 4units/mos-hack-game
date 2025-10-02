@@ -66,9 +66,9 @@ const ruPlural = (n: number, one: string, few: string, many: string) => {
 };
 
 const buildSubtitle = (seconds: number) => {
-  const s = Math.max(0, Math.round(seconds)); // страхуемся
+  const s = Math.max(0, Math.round(seconds));
   if (s < 60) {
-    const val = Math.max(1, s); // показываем хотя бы 1 секунду
+    const val = Math.max(1, s);
     return `Вы успели\nза ${val} ${ruPlural(val, 'секунду', 'секунды', 'секунд')}!`;
   }
   const minutes = Math.ceil(s / 60);
@@ -106,7 +106,6 @@ const LinkNumberVictoryBottomSheet = ({
       <div className="mt-6 flex flex-wrap gap-3">
         <StarsCount ariaLabel="Награда в звездах" number={tier.stars} color="violet" disabled />
         <div className="flex items-center gap-2">
-          {/* Важно: чтобы \n отобразился как перенос, используем whitespace-pre-line */}
           <span className="text-[var(--color-violet)] text-sm font-medium whitespace-pre-line">
             {dynamicSubtitle}
           </span>

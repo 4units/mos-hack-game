@@ -356,7 +356,7 @@ export const LinkNumber = forwardRef<LinkNumberHandle, Props>(
                         width={cellWidth}
                         height={cellHeight}
                         cornerRadius={10}
-                        fill="#000" // любой непрозрачный цвет
+                        fill="#000"
                         globalCompositeOperation="destination-out"
                       />
                     </Group>
