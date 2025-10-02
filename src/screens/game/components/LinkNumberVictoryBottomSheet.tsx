@@ -72,7 +72,7 @@ const buildSubtitle = (seconds: number) => {
     const val = Math.max(1, s);
     return `Вы успели\nза ${val} ${ruPlural(val, 'секунду', 'секунды', 'секунд')}!`;
   }
-  const minutes = Math.ceil(s / 60);
+  const minutes = Math.max(1, Math.floor(s / 60));
   return `Вы успели\nза ${minutes} ${ruPlural(minutes, 'минуту', 'минуты', 'минут')}!`;
 };
 
