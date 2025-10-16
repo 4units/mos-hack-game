@@ -13,8 +13,8 @@ type Balance struct {
 }
 
 type LineGame struct {
-	CheckAnswer       bool                      `yaml:"check_answer" json:"check_answer" validate:"required" example:"false""`
-	RewardsConditions []LineGameRewardCondition `yaml:"rewards_conditions" json:"rewards_conditions" validate:"required"`
+	CheckAnswer       bool                      `yaml:"check_answer" json:"check_answer" example:"false""`
+	RewardsConditions []LineGameRewardCondition `yaml:"rewards_conditions" json:"rewards_conditions"`
 }
 
 type LineGameRewardCondition struct {
