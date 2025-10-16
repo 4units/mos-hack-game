@@ -1,0 +1,19 @@
+basePath: /api
+host: 4units.ru
+info:
+  contact:
+    email: iamvkosarev@gmail.com
+    name: API Support
+  description: Server for Moscow hackathon game project.
+  title: MosHackGame API
+  version: "1.0"
+paths: {}
+schemes:
+- https
+securityDefinitions:
+  BearerAuth:
+    description: 'Type "Bearer <token>" to authenticate. Example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
