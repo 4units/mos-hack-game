@@ -25,7 +25,7 @@ game:
     soft_currency_reward: 50
   items_price:
     line_game_hint_price: 300
-    line_game_stop_time_booster_price: 900
+    line_game_stop_time_booster_price: 90
   balance:
     start_soft_currency: 300
 router:
