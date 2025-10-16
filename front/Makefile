@@ -5,7 +5,7 @@ DIST      := $(CURDIR)/dist
 
 # Запуск на сервере
 deploy-front:
-	[ -d node_modules ] || npm i
+	[ -d node_modules ] || npm ci
 	npm run build
 	sudo rsync -av --delete --exclude='.well-known' $(DIST)/ $(SITE_ROOT)/
 	sudo chown -R www-data:www-data $(SITE_ROOT)

@@ -4,16 +4,16 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "../node_modules/.bin/vite --host",
-    "build": "../node_modules/.bin/tsc -b && vite build",
-    "lint": "../node_modules/.bin/eslint .",
-    "format": "../node_modules/.bin/prettier --write .",
-    "format:check": "../node_modules/.bin/prettier --check .",
-    "preview": "../node_modules/.bin/vite preview",
-    "prepare": "../node_modules/.bin/husky",
-    "lint-staged": "../node_modules/.bin/lint-staged"
+    "dev": "vite --host",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "preview": "vite preview",
+    "prepare": "husky",
+    "lint-staged": "lint-staged"
   },
-  "lint-staged": {
+ "lint-staged": {
     "*.{ts,tsx,js,jsx}": [
       "prettier --write",
       "eslint --fix"
