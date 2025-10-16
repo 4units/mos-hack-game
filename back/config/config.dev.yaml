@@ -24,9 +24,9 @@ game:
   quiz:
     soft_currency_reward: 50
   items_price:
-    line_game_hint_price: 50
-    line_game_stop_time_booster_price: 30
+    line_game_hint_price: 300
+    line_game_stop_time_booster_price: 900
   balance:
-    start_soft_currency: 100
+    start_soft_currency: 300
 router:
   request_timeout: 5s
