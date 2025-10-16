@@ -1,7 +1,13 @@
 -include .env
 export
 
-DOCS_DIR := ../../mos-hack-game-api/docs
+API_DOCS_DIR := ./api-docs
+MAIN_PATH := ./cmd/main.go
+
+generate-docs:
+	rm -Rf $(API_DOCS_DIR)
+	mkdir $(API_DOCS_DIR)
+	swag init -o $(API_DOCS_DIR) -g $(MAIN_PATH)
 
 generate-secrets:
 	openssl genrsa -out secrets/chat-server.rsa

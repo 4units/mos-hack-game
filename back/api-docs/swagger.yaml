@@ -1,0 +1,797 @@
+basePath: /api
+definitions:
+  config.Balance:
+    properties:
+      start_soft_currency:
+        example: 1
+        type: integer
+    required:
+    - start_soft_currency
+    type: object
+  config.ItemsPrice:
+    properties:
+      line_game_hint_price:
+        example: 40
+        type: integer
+      line_game_stop_time_booster_price:
+        example: 40
+        type: integer
+    required:
+    - line_game_hint_price
+    - line_game_stop_time_booster_price
+    type: object
+  config.LineGame:
+    properties:
+      check_answer:
+        example: false
+        type: boolean
+      rewards_conditions:
+        items:
+          $ref: '#/definitions/config.LineGameRewardCondition'
+        type: array
+    required:
+    - check_answer
+    - rewards_conditions
+    type: object
+  config.LineGameReward:
+    properties:
+      soft_currency:
+        example: 40
+        type: integer
+    required:
+    - soft_currency
+    type: object
+  config.LineGameRewardCondition:
+    properties:
+      max_time:
+        description: MaxTime is max time in seconds
+        example: 10
+        type: number
+      reward:
+        $ref: '#/definitions/config.LineGameReward'
+    required:
+    - max_time
+    - reward
+    type: object
+  config.Quiz:
+    properties:
+      soft_currency_reward:
+        example: 40
+        type: integer
+    required:
+    - soft_currency_reward
+    type: object
+  handler.AddQuizRequest:
+    properties:
+      answer_description:
+        type: string
+      answers:
+        items:
+          type: string
+        maxItems: 50
+        type: array
+      correct_answer:
+        type: integer
+      info_link:
+        type: string
+      question:
+        maxLength: 130
+        type: string
+    required:
+    - answers
+    - correct_answer
+    - info_link
+    - question
+    type: object
+  handler.AnswerQuizRequest:
+    properties:
+      answer:
+        type: integer
+      id:
+        type: string
+    required:
+    - id
+    type: object
+  handler.AnswerQuizResponse:
+    properties:
+      soft_currency:
+        type: integer
+    type: object
+  handler.AuthenticateUserRequest:
+    properties:
+      email:
+        example: test@test.ru
+        type: string
+      password:
+        example: TestTest123
+        minLength: 8
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  handler.AuthenticateUserResponse:
+    properties:
+      token:
+        type: string
+    type: object
+  handler.Cell:
+    properties:
+      x:
+        type: integer
+      "y":
+        type: integer
+    type: object
+  handler.CompleteLevelRequest:
+    properties:
+      answer:
+        items:
+          items:
+            type: integer
+          type: array
+        type: array
+      time_since_start:
+        example: 1
+        type: integer
+    required:
+    - time_since_start
+    type: object
+  handler.CompleteLevelResponse:
+    properties:
+      soft_currency:
+        type: integer
+    type: object
+  handler.GetLevelHintResponse:
+    properties:
+      answer:
+        items:
+          items:
+            type: integer
+          type: array
+        type: array
+    required:
+    - answer
+    type: object
+  handler.GetQuizResponse:
+    properties:
+      answer:
+        items:
+          type: string
+        type: array
+      answer_description:
+        type: string
+      id:
+        type: string
+      info_link:
+        type: string
+      question:
+        type: string
+    type: object
+  handler.GetUserBalanceResponse:
+    properties:
+      soft_currency:
+        type: integer
+    type: object
+  handler.GetUserInfoResponse:
+    properties:
+      email:
+        type: string
+      id:
+        type: string
+    type: object
+  handler.GetUserLevelResponse:
+    properties:
+      blockers:
+        items:
+          $ref: '#/definitions/handler.Cell'
+        type: array
+      end_cell:
+        $ref: '#/definitions/handler.Cell'
+      field_size:
+        type: integer
+      level_num:
+        type: integer
+      order:
+        items:
+          $ref: '#/definitions/handler.Cell'
+        type: array
+      start_cell:
+        $ref: '#/definitions/handler.Cell'
+    type: object
+  handler.RegisterAnonymousResponse:
+    properties:
+      token:
+        type: string
+    type: object
+  handler.RegisterUserRequest:
+    properties:
+      email:
+        example: test@test.ru
+        type: string
+      password:
+        example: TestTest123
+        minLength: 8
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  handler.UpdateQuizRequest:
+    properties:
+      answer_description:
+        type: string
+      answers:
+        items:
+          type: string
+        type: array
+      correct_answer:
+        type: integer
+      id:
+        type: string
+      info_link:
+        type: string
+      question:
+        type: string
+    required:
+    - id
+    type: object
+  http_errors.ResponseError:
+    properties:
+      error:
+        example: internal server error
+        type: string
+    type: object
+host: 4units.ru
+info:
+  contact:
+    email: iamvkosarev@gmail.com
+    name: API Support
+  description: Server for Moscow hackathon game project.
+  title: MosHackGame API
+  version: "1.0"
+paths:
+  /config/balance:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/config.Balance'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+      summary: Get balance config
+      tags:
+      - config
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Update balance config data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/config.Balance'
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Update balance config
+      tags:
+      - config
+  /config/line:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/config.LineGame'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+      summary: Get line game config
+      tags:
+      - config
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Update line game config data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/config.LineGame'
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Update line game config
+      tags:
+      - config
+  /config/price:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/config.ItemsPrice'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+      summary: Get price config
+      tags:
+      - config
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Update price config data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/config.ItemsPrice'
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Update price config
+      tags:
+      - config
+  /config/quiz:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/config.Quiz'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+      summary: Get quiz config
+      tags:
+      - config
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Update quiz config data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/config.Quiz'
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Update quiz config
+      tags:
+      - config
+  /game/balance:
+    get:
+      description: Returns balance of the user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.GetUserBalanceResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Get current user balance
+      tags:
+      - balance
+  /game/line/hint:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.GetLevelHintResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Get current user level's hint
+      tags:
+      - line-game
+  /game/line/level:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.GetUserLevelResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Get current user level
+      tags:
+      - line-game
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Complete level data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.CompleteLevelRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.CompleteLevelResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Complete current user level
+      tags:
+      - line-game
+  /game/line/time-stop-booster:
+    get:
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Spend money on stop time booster
+      tags:
+      - line-game
+  /game/quiz:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.GetQuizResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+      summary: Get quiz
+      tags:
+      - quiz
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Add quiz data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.AddQuizRequest'
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Add quiz
+      tags:
+      - quiz
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Update quiz data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.UpdateQuizRequest'
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Update quiz
+      tags:
+      - quiz
+  /game/quiz/answer:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Complete quiz data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.AnswerQuizRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.AnswerQuizResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Complete current user quiz
+      tags:
+      - quiz
+  /user:
+    get:
+      consumes:
+      - application/json
+      description: Returns info of the user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.GetUserInfoResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Get current user info
+      tags:
+      - user
+  /user/register/email:
+    post:
+      consumes:
+      - application/json
+      description: Registers a new user by email and password.
+      parameters:
+      - description: Registration data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.RegisterUserRequest'
+      responses:
+        "201":
+          description: created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+      summary: Register by email and password
+      tags:
+      - user
+  /user/token/anonymous:
+    get:
+      description: Creates a new anonymous user and returns an auth token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.RegisterAnonymousResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+      summary: Get anonymous user token
+      tags:
+      - user
+  /user/token/email:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates a registered user and returns an auth token.
+      parameters:
+      - description: Credentials
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.AuthenticateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.AuthenticateUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http_errors.ResponseError'
+      summary: Authenticate by email and password
+      tags:
+      - user
+schemes:
+- https
+securityDefinitions:
+  BearerAuth:
+    description: 'Type "Bearer <token>" to authenticate. Example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

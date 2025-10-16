@@ -1,7 +1,7 @@
 package router
 
 import (
-	_ "github.com/4units/mos-hack-game/api-docs/gen"
+	_ "github.com/4units/mos-hack-game/back/api-docs"
 	"github.com/4units/mos-hack-game/back/config"
 	"github.com/4units/mos-hack-game/back/internal/handler"
 	"github.com/4units/mos-hack-game/back/internal/middleware"

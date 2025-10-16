@@ -3,7 +3,6 @@ module github.com/4units/mos-hack-game/back
 go 1.24.4
 
 require (
-	github.com/4units/mos-hack-game/api-docs v0.0.0
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/golang-jwt/jwt/v5 v5.3.0
@@ -13,10 +12,9 @@ require (
 	github.com/jackc/pgx/v5 v5.7.6
 	github.com/joho/godotenv v1.5.1
 	github.com/swaggo/http-swagger/v2 v2.0.2
+	github.com/swaggo/swag v1.16.6
 	golang.org/x/crypto v0.42.0
 )
-
-replace github.com/4units/mos-hack-game/api-docs => ../api-docs
 
 require (
 	github.com/BurntSushi/toml v1.5.0 // indirect
@@ -38,7 +36,6 @@ require (
 	github.com/mailru/easyjson v0.7.6 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/swaggo/files/v2 v2.0.0 // indirect
-	github.com/swaggo/swag v1.16.6 // indirect
 	golang.org/x/mod v0.27.0 // indirect
 	golang.org/x/sync v0.17.0 // indirect
 	golang.org/x/sys v0.36.0 // indirect
