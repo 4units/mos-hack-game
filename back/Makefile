@@ -30,7 +30,3 @@ create-migration:
 		echo "Need argument 'name=...'" && exit 1; \
 	fi
 	@migrate create -ext sql -dir $(MIGRATIONS_DIR) -seq $(name)
-
-generate-docs:
-	rm -Rf $(DOCS_DIR)
-	swag init -o $(DOCS_DIR) -g cmd/main.go
